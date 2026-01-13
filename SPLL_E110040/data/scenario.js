@@ -1,5 +1,8 @@
 export const scenario = [
   {
+    bg: "room"
+  },
+  {
     "speaker": "Narrator",
     "text": "二人きりの夜、熱を帯びた体を食らう。"
   },
