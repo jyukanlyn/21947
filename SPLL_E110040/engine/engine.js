@@ -19,6 +19,10 @@ function nextStep() {
 }
 
 function render(step) {
+    if (step.bg) {
+    changeBackground(step.bg);
+    return; // 背景本身不顯示文字
+  }
   namePlate.textContent = step.speaker === "Narrator" ? "" : step.speaker;
   textBox.textContent = step.text;
 
