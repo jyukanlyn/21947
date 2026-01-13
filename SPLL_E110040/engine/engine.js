@@ -101,6 +101,18 @@ export function changeBackground(key) {
 
   bgEl.style.opacity = 0;
 
+  function nextLine(line) {
+  if (line.bg) {
+    changeBackground(line.bg);
+    return;
+  }
+
+  if (line.speaker) {
+    showDialogue(line);
+  }
+}
+
+
   setTimeout(() => {
     bgEl.style.backgroundImage = `url(${src})`;
     bgEl.style.opacity = 1;
