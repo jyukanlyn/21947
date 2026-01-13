@@ -100,6 +100,11 @@ export function changeBackground(key) {
   if (!src) return;
 
   bgEl.style.opacity = 0;
+    setTimeout(() => {
+    bgEl.style.backgroundImage = `url(${src})`;
+    bgEl.style.opacity = 1;
+  }, 300);
+}
 
   function nextLine(line) {
   if (line.bg) {
@@ -110,11 +115,4 @@ export function changeBackground(key) {
   if (line.speaker) {
     showDialogue(line);
   }
-}
-
-
-  setTimeout(() => {
-    bgEl.style.backgroundImage = `url(${src})`;
-    bgEl.style.opacity = 1;
-  }, 300);
 }
