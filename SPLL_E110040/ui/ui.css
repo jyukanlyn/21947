@@ -121,3 +121,12 @@ html, body {
 .chapter-item:hover {
   color: #ffcc00;
 }
+
+#background {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: opacity 0.6s;
+  z-index: 0;
+}
