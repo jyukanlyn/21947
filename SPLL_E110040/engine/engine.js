@@ -91,3 +91,18 @@ function jumpToChapter(index) {
 chapterMenu.addEventListener("click", () => {
   chapterMenu.hidden = true;
 });
+import { backgrounds } from "../data/scenario.js";
+
+const bgEl = document.getElementById("background");
+
+export function changeBackground(key) {
+  const src = backgrounds[key];
+  if (!src) return;
+
+  bgEl.style.opacity = 0;
+
+  setTimeout(() => {
+    bgEl.style.backgroundImage = `url(${src})`;
+    bgEl.style.opacity = 1;
+  }, 300);
+}
