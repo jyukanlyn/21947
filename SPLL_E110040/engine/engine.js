@@ -148,7 +148,7 @@ function nextStep() {
 function prevStep() {
     if (state.index <= 1) return; 
 
-    state.index -= 2;
+    state.index -= 1;
     state.history.pop();
     state.textQueue = [];
 
