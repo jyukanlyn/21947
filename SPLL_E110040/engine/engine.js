@@ -55,7 +55,7 @@ function initGame() {
 }
 
 // --- 核心運作邏輯 ---
-// 多少字換頁
+
 const CHAR_LIMIT = 40; 
 
 function nextStep() {
