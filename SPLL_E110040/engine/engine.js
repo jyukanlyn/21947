@@ -3,9 +3,7 @@ import { characters } from "../data/characters.js";
 // 重要：必須引入 backgrounds 才能讀取圖片路徑
 import { state, backgrounds } from "./state.js";
 
-// ✅ 新的寫法：直接呼叫初始化，不等待 DOMContentLoaded (因為 script type="module" 預設就是延遲執行的)
-console.log("引擎啟動！");
-initGame();
+// ⚠️ 修正順序：先定義 UI，最後再執行 initGame()
 
 // UI 元素快取 (對應 index.html 的 ID)
 const ui = {
@@ -16,7 +14,6 @@ const ui = {
     gameScreen: document.getElementById("game-screen"),
     chapterBtn: document.getElementById("chapter-btn"),
     chapterMenu: document.getElementById("chapter-menu"),
-    // 👇 新增：歷史紀錄與上一頁相關按鈕
     logBtn: document.getElementById("log-btn"),
     logWindow: document.getElementById("log-window"),
     logContent: document.getElementById("log-content"),
@@ -39,7 +36,7 @@ function initGame() {
     // 初始化章節選單
     setupChapterMenu();
 
-    // 👇 按鈕事件綁定 (紀錄 & 上一頁)
+    // 按鈕事件綁定 (紀錄 & 上一頁)
     if (ui.logBtn) ui.logBtn.addEventListener("click", (e) => {
         e.stopPropagation(); 
         showLog();
@@ -65,11 +62,11 @@ function initGame() {
 
 // --- 核心運作邏輯 ---
 
-// 設定：大約多少字換一頁？
+// 設定：每頁最多字數
 const CHAR_LIMIT = 80; 
 
 function nextStep() {
-    // 1. 【檢查佇列】優先處理還沒講完的話 (Smart Cut)
+    // 1. 【檢查佇列】優先處理還沒講完的話
     if (state.textQueue && state.textQueue.length > 0) {
         const nextChunk = state.textQueue.shift();
         ui.textBox.textContent = nextChunk;
@@ -99,30 +96,24 @@ function nextStep() {
     // 4. 取得新的步驟
     let step = { ...scenario[state.index] }; 
     state.index++;
-    state.textQueue = []; // 清空舊的文字佇列
+    state.textQueue = []; 
 
-    // 5. 【✨ 聰明換頁邏輯：字數限制 + 找句號】
+    // 5. 【✨ 聰明換頁邏輯】
     if (step.text && step.text.length > CHAR_LIMIT) {
         const fullText = step.text;
         const chunks = [];
         let remaining = fullText;
 
         while (remaining.length > 0) {
-            // 如果剩下的字少於限制，直接全部塞進去
             if (remaining.length <= CHAR_LIMIT) {
                 chunks.push(remaining);
                 break;
             }
 
-            // --- 尋找最佳切割點 ---
             let chunkAttempt = remaining.substring(0, CHAR_LIMIT);
-            
-            // 定義我們要找的標點符號
             const punctuation = ["。", "！", "？", "\n", "……", "⋯⋯", "」"];
-            
             let bestSplitIndex = -1;
 
-            // 從後面開始找，看哪個標點符號最接近限制的尾端
             for (let p of punctuation) {
                 const idx = chunkAttempt.lastIndexOf(p);
                 if (idx > bestSplitIndex) {
@@ -131,22 +122,18 @@ function nextStep() {
             }
 
             let finalCutIndex;
-            
             if (bestSplitIndex !== -1) {
-                // 找到了標點符號！切割點設在標點符號的「後面」
                 finalCutIndex = bestSplitIndex + 1;
             } else {
-                // 沒找到標點符號，只好硬切
                 finalCutIndex = CHAR_LIMIT;
             }
 
-            // 切割並放入佇列
             chunks.push(remaining.substring(0, finalCutIndex));
             remaining = remaining.substring(finalCutIndex);
         }
 
-        step.text = chunks.shift(); // 取出第一段
-        state.textQueue = chunks;   // 剩下的存起來
+        step.text = chunks.shift(); 
+        state.textQueue = chunks;   
         console.log(`文字太長，已聰明切割成 ${chunks.length + 1} 段`);
     }
 
@@ -159,13 +146,8 @@ function nextStep() {
 function prevStep() {
     if (state.index <= 1) return; 
 
-    // 索引倒退 2 格
     state.index -= 2;
-
-    // 刪除最後一筆紀錄
     state.history.pop();
-    
-    // 清空未讀佇列
     state.textQueue = [];
 
     nextStep();
@@ -186,11 +168,9 @@ function render(step) {
         ui.namePlate.textContent = speakerName;
         ui.namePlate.setAttribute("data-name", speakerName); 
 
-        // 取得角色資料
         const charData = characters[step.speaker];
 
         if (charData) {
-            // --- A. 顏色設定 ---
             if (charData.nameColor) {
                 ui.namePlate.style.backgroundColor = charData.nameColor;
                 ui.namePlate.style.color = charData.textColor || "white"; 
@@ -199,7 +179,6 @@ function render(step) {
                 ui.namePlate.style.color = ""; 
             }
 
-            // --- B. 位置設定 ---
             if (charData.side === "right") {
                 ui.namePlate.classList.add("right-side");
             } else {
@@ -207,7 +186,6 @@ function render(step) {
             }
 
         } else {
-            // 還原預設值
             ui.namePlate.style.backgroundColor = ""; 
             ui.namePlate.style.color = ""; 
             ui.namePlate.classList.remove("right-side"); 
@@ -226,7 +204,6 @@ function showLog() {
     const list = ui.logContent;
     list.innerHTML = ""; 
 
-    // 把當前畫面這句也加進去顯示
     const currentStep = scenario[state.index - 1];
     const displayHistory = [...state.history]; 
     
@@ -278,7 +255,6 @@ function changeBackground(bgID) {
 function updateCharacters(step) {
     resetAvatars();
 
-    // 如果是 Narrator (旁白)，將所有立繪變暗
     if (step.speaker === "Narrator") {
         dimAll();
         return;
@@ -362,3 +338,8 @@ function jumpToChapter(index) {
     ui.chapterMenu.hidden = true;
     nextStep();
 }
+
+// ✅ 這裡才是最後一行：啟動遊戲
+// 把啟動指令放在檔案最下面，確保所有變數都已經準備好了
+console.log("引擎啟動！");
+initGame();
