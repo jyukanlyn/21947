@@ -12,7 +12,6 @@ import { state, backgrounds } from "./state.js";
 // ✅ 新的寫法 (請改成這樣，直接呼叫)
 console.log("引擎啟動！");
 initGame();
-});
 
 // UI 元素快取 (對應 index.html 的 ID)
 const ui = {
