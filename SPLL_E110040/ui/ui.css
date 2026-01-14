@@ -2,8 +2,8 @@
 
 /* 1. 註冊新字體 */
 @font-face {
-  font-family: "MyNarratorFont";  /* 幫它取個名字，您可以自己改 */
-  /* 👇 注意路徑：跟圖片一樣，要用 ../ 跳出 ui 資料夾 */
+  font-family: "MyNarratorFont";
+  /* 👇 注意路徑是否正確 */
   src: url("../assets/fonts/KozMinPr6N-Bold.otf"); 
 }
 
@@ -17,14 +17,13 @@ html, body {
   height: 100%;
   font-family: "Microsoft JhengHei", sans-serif;
   background: black;
-  overflow: hidden; /* 防止出現捲軸 */
+  overflow: hidden; /* 防止出現網頁捲軸 */
 }
 
 #game-screen {
   position: relative;
   width: 100vw;
   height: 100vh;
-  /* 這裡只要設定預設圖片就好，JS 會去換掉它 */
   background-image: url("../assets/bg/bedroom.png");
   background-size: cover;
   background-position: center;
@@ -42,13 +41,31 @@ html, body {
   z-index: -1; 
 }
 
+/* ===== 特殊事件圖片 (骰子/CG) ===== */
+/* ✨ 讓這張圖顯示在畫面正中央 */
+#event-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 60vw; 
+  max-height: 60vh;
+  z-index: 15; /* 在立繪之上，對話框之下 */
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 /* ===== 角色 ===== */
 #avatar-container {
   position: absolute;
   bottom: calc(var(--dialogue-height) + 20px);
   width: 100%;
   height: 60vh;
-  pointer-events: none; /* 讓滑鼠點擊穿透角色區域 */
+  pointer-events: none;
   z-index: 5;
 }
 
@@ -64,17 +81,9 @@ html, body {
 .avatar.left { left: 40px; }
 .avatar.right { right: 40px; }
 
-.avatar.active {
-  opacity: 1;
-  filter: brightness(1);
-}
+.avatar.active { opacity: 1; filter: brightness(1); }
+.avatar.inactive { opacity: .45; filter: brightness(.75); }
 
-.avatar.inactive {
-  opacity: .45;
-  filter: brightness(.75);
-}
-
-/* 呼吸動畫 */
 @keyframes breathe {
   0% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
@@ -93,7 +102,7 @@ html, body {
   background: rgba(0,0,0,.85);
   border-radius: 10px;
   
-  /* 👇 修改這裡：左邊 padding 加大到 60px，避免文字壓到「上一頁」箭頭 */
+  /* 左邊 padding 加大，避免壓到 Back 按鈕 */
   padding: 20px 20px 20px 60px; 
   
   box-sizing: border-box;
@@ -107,64 +116,43 @@ html, body {
   position: absolute;
   top: -28px;
   left: 20px;  
-  right: auto; /* 清除右邊設定 */
-
+  right: auto; 
   background: #ffcc00;
   color: black;
   padding: 4px 16px;
   border-radius: 5px;
   font-weight: bold;
-  
-  /* 移動動畫 */
   transition: all 0.3s ease;
 }
 
-/* 當名字框跑到右邊時的樣式 */
-#name-plate.right-side {
-  left: auto; 
-  right: 20px; 
-}
+#name-plate.right-side { left: auto; right: 20px; }
+#name-plate:empty { display: none; }
 
-/* 如果沒名字則隱藏 */
-#name-plate:empty {
-  display: none;
-}
-/* ui/ui.css */
-
+/* 對話內容 */
 #dialogue-text {
-  /* --- 📍 定位與尺寸 (保留原本的設定) --- */
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   
-  /* --- 🎨 文字樣式 --- */
-  color: white;             /* 文字顏色 */
-  font-size: 1.1rem;        /* 字體大小 */
-  line-height: 1.6;         /* 行高 (行距) */
-  white-space: pre-wrap;    /* 保留換行符號 */
+  color: white;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
   
-  /* --- ✨ 關鍵修改：留空第一行 --- */
-  padding-top: 60px;        /* 上方留白 (模擬第一行空著) */
+  /* ✨ 關鍵：模擬第一行留空 */
+  padding-top: 60px; 
   
-  /* 其他方向的留白 */
   padding-left: 30px;
   padding-right: 30px;
   padding-bottom: 20px;
-
-  /* --- 📐 盒模型 (防止破版) --- */
-  box-sizing: border-box;   /* 讓 padding 包含在 width/height 內 */
-  
+  box-sizing: border-box;
+  overflow-y: auto; /* 文字太多可捲動 */
 }
 
 /* ===== 按鈕區 ===== */
-
-/* 章節按鈕 (右上角) */
 #chapter-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 20px; right: 20px;
   background: rgba(255,255,255,.15);
   color: white;
   border: none;
@@ -175,11 +163,9 @@ html, body {
 }
 #chapter-btn:hover { background: rgba(255,255,255,.3); }
 
-/* Log 按鈕 (左上角) */
 #log-btn {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 20px; left: 20px;
   z-index: 100; 
   background: rgba(0, 0, 0, 0.6);
   color: white;
@@ -190,13 +176,11 @@ html, body {
 }
 #log-btn:hover { background: rgba(0,0,0,0.8); border-color: white; }
 
-/* Back 按鈕 (對話框左側的三角形) */
 #back-btn {
   position: absolute;
   left: 15px;         
   top: 50%;           
   transform: translateY(-50%);
-  
   font-size: 1.5rem;  
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
@@ -204,13 +188,10 @@ html, body {
   user-select: none;  
   transition: color 0.2s;
 }
-#back-btn:hover {
-  color: #ffcc00;     
-  transform: translateY(-50%) scale(1.2); 
-}
+#back-btn:hover { color: #ffcc00; transform: translateY(-50%) scale(1.2); }
 
-/* ===== Log 視窗 ===== */
-#chapter-menu, #log-window {
+/* ===== 章節選單 (全螢幕) ===== */
+#chapter-menu {
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,.95);
@@ -220,18 +201,71 @@ html, body {
   overflow-y: auto;
   z-index: 200; 
 }
+.chapter-item {
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,.2);
+  cursor: pointer;
+}
+.chapter-item:hover { color: #ffcc00; }
 
-/* 統一設定 Log 視窗跟章節視窗裡的關閉/選項樣式 */
+/* ===== ✨ LOG 視窗 (浮動視窗版) ===== */
+#log-window {
+  /* 固定在畫面中間 */
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  
+  /* 視窗大小 */
+  width: 80%;
+  height: 70%;
+  max-width: 800px;
+  
+  /* 樣式 */
+  background-color: rgba(0, 0, 0, 0.95);
+  border: 2px solid #888;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+  
+  /* Flex 佈局：讓標題固定，內容捲動 */
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+}
+
+/* Log 標題列 */
 .log-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 10px 20px;
   border-bottom: 1px solid #555;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0; /* 高度固定 */
 }
 
-/* 👇 新增：美化 Log 視窗裡的關閉按鈕 */
+/* Log 內容區 (捲動區) */
+#log-content {
+  flex: 1; /* 填滿剩餘空間 */
+  overflow-y: auto; /* 內部捲動 */
+  padding: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #ddd;
+}
+
+/* 自訂捲軸 */
+#log-content::-webkit-scrollbar { width: 8px; }
+#log-content::-webkit-scrollbar-track { background: #333; }
+#log-content::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+
+.log-entry {
+  margin-bottom: 15px;
+  border-bottom: 1px dashed #333;
+  padding-bottom: 10px;
+}
+.log-name { color: #ffcc00; font-weight: bold; margin-right: 10px; }
+
+/* 關閉按鈕 */
 #close-log-btn {
   background: transparent;
   border: 1px solid #fff;
@@ -240,58 +274,23 @@ html, body {
   border-radius: 4px;
   cursor: pointer;
 }
-#close-log-btn:hover {
-  background: #fff;
-  color: #000;
-}
+#close-log-btn:hover { background: #fff; color: #000; }
 
-#log-content {
-  flex: 1;
-  overflow-y: auto;
-  font-size: 1.1rem;
-  line-height: 1.8;
-}
 
-.log-entry {
-  margin-bottom: 16px;
-  border-bottom: 1px dashed #333;
-  padding-bottom: 8px;
-}
+/* ===== 通用工具 ===== */
 
-.log-name {
-  font-weight: bold;
-  color: #ffcc00; 
-  margin-right: 10px;
-}
-
-.log-text {
-  color: #ddd;
-}
-
-.chapter-item {
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(255,255,255,.2);
-  cursor: pointer;
-}
-
-.chapter-item:hover {
-  color: #ffcc00;
-}
-
-/* 👇 強制隱藏 hidden 屬性的元素，防止它們擋住點擊 */
+/* 強制隱藏 */
 [hidden] {
   display: none !important;
   pointer-events: none !important;
   visibility: hidden !important;
 }
 
-/* --- ✨ 新增：旁白專用的文字樣式 --- */
+/* 旁白專用字體 */
 .narrator-style {
-  /* 1. 字體改為「明體/襯線體」(像小說一樣的字體) */
   font-family: "MyNarratorFont", serif;
-  
-  font-size: 1.1rem;    /* 如果新字體太小，可以在這裡調整 */
+  font-size: 1.1rem;
+  font-style: italic; /* 可以選擇要不要斜體 */
   color: #dddddd; 
   letter-spacing: 1px;
-
 }
