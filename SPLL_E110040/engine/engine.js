@@ -74,32 +74,33 @@ function render(step) {
         changeBackground(step.bg);
     }
 
-    // 2. 文字處理
-    // 如果是旁白(Narrator)或沒寫名字，名字欄留空
+    // 2. 文字與名字框處理
     const speakerName = (step.speaker === "Narrator" || !step.speaker) ? "" : step.speaker;
-    
-    if (ui.namePlate) ui.namePlate.textContent = speakerName;
-    // --- 新增：動態改變名字框顏色 ---
-        
-        // 1. 先去 characters 資料表找這個角色
+
+    // 修正開始：加上大括號，把名字設定和顏色設定包在一起
+    if (ui.namePlate) {
+        ui.namePlate.textContent = speakerName;
+
+        // --- 動態改變名字框顏色 ---
         const charData = characters[step.speaker];
 
-        // 2. 判斷：如果角色存在，且有設定 nameColor
+        // 判斷：如果角色存在，且有設定 nameColor
         if (charData && charData.nameColor) {
             ui.namePlate.style.backgroundColor = charData.nameColor;
-            // 如果顏色較深，建議強制把文字變白，不然會看不清楚
             ui.namePlate.style.color = "white"; 
         } else {
-            // 3. 如果沒設定，或者此時是旁白/路人，清除行內樣式 (回復成 CSS 的預設黃色)
+            // 如果沒設定，或者此時是旁白/路人，清除樣式 (回復成 CSS 預設值)
             ui.namePlate.style.backgroundColor = ""; 
             ui.namePlate.style.color = ""; 
         }
-    }
+    } // 修正結束：這裡的括號現在有對應的開頭了
+
     if (ui.textBox) ui.textBox.textContent = step.text || "";
 
     // 3. 立繪處理
     updateCharacters(step);
 }
+
 
 function changeBackground(bgID) {
     // 從 state.js 的 backgrounds 列表中查找路徑
