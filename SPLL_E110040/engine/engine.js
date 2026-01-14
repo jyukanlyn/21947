@@ -19,7 +19,6 @@ const ui = {
     logContent: document.getElementById("log-content"),
     closeLogBtn: document.getElementById("close-log-btn"),
     backBtn: document.getElementById("back-btn"),
-    // 如果您有加骰子圖片功能，記得確認這裡有沒有 eventImage
     eventImage: document.getElementById("event-image"), 
 };
 
@@ -148,7 +147,7 @@ function nextStep() {
 function prevStep() {
     if (state.index <= 1) return; 
 
-    state.index -= 1;
+    state.index -= 2;
     state.history.pop();
     state.textQueue = [];
 
@@ -167,11 +166,10 @@ function render(step) {
     const speakerName = step.speaker || "";
     
     if (ui.namePlate) {
-        // 👇👇👇 【關鍵修改】如果是 Narrator，直接隱藏名字框 👇👇👇
+        // 如果是 Narrator，直接隱藏名字框
         if (step.speaker === "Narrator") {
             ui.namePlate.style.display = "none";
         } else {
-            // 如果不是 Narrator，要記得把 display 改回來 (設為空字串會回復 CSS 預設值)
             ui.namePlate.style.display = ""; 
             ui.namePlate.textContent = speakerName;
             ui.namePlate.setAttribute("data-name", speakerName); 
@@ -180,180 +178,4 @@ function render(step) {
             const charData = characters[step.speaker];
 
             if (charData) {
-                if (charData.nameColor) {
-                    ui.namePlate.style.backgroundColor = charData.nameColor;
-                    ui.namePlate.style.color = charData.textColor || "white"; 
-                } else {
-                    ui.namePlate.style.backgroundColor = ""; 
-                    ui.namePlate.style.color = ""; 
-                }
-
-                if (charData.side === "right") {
-                    ui.namePlate.classList.add("right-side");
-                } else {
-                    ui.namePlate.classList.remove("right-side");
-                }
-            } else {
-                // 預設樣式
-                ui.namePlate.style.backgroundColor = ""; 
-                ui.namePlate.style.color = ""; 
-                ui.namePlate.classList.remove("right-side"); 
-            }
-        }
-        // 👆👆👆 【修改結束】 👆👆👆
-    }
-
-    // 文字框樣式 (Narrator 字體)
-    if (ui.textBox) {
-        ui.textBox.textContent = step.text || "";
-    }
-
-    // 3. 立繪處理
-    updateCharacters(step);
-}
-
-// ✨ 顯示歷史紀錄視窗
-function showLog() {
-    if (!ui.logContent) return;
-    const list = ui.logContent;
-    list.innerHTML = ""; 
-
-    const currentStep = scenario[state.index - 1];
-    const displayHistory = [...state.history]; 
-    
-    if (currentStep) {
-        displayHistory.push({
-            speaker: currentStep.speaker || "",
-            text: currentStep.text || ""
-        });
-    }
-
-    displayHistory.forEach(log => {
-        if (!log.text) return;
-        const div = document.createElement("div");
-        div.className = "log-entry";
-        
-        if (log.speaker && log.speaker !== "Narrator") {
-            const nameSpan = document.createElement("span");
-            nameSpan.className = "log-name";
-            nameSpan.textContent = log.speaker + "：";
-            div.appendChild(nameSpan);
-        }
-
-        const textSpan = document.createElement("span");
-        textSpan.className = "log-text";
-        textSpan.textContent = log.text;
-        div.appendChild(textSpan);
-
-        list.appendChild(div);
-    });
-
-    ui.logWindow.hidden = false;
-    setTimeout(() => {
-        list.scrollTop = list.scrollHeight;
-    }, 10);
-}
-
-function changeBackground(bgID) {
-    const bgPath = backgrounds[bgID];
-
-    if (bgPath) {
-        ui.gameScreen.style.backgroundImage = `url('${bgPath}')`;
-        ui.gameScreen.style.backgroundSize = "cover";     
-        ui.gameScreen.style.backgroundPosition = "center"; 
-    } else {
-        console.warn(`警告：在 state.js 中找不到背景代號 '${bgID}'`);
-    }
-}
-
-function updateCharacters(step) {
-    resetAvatars();
-
-    if (step.speaker === "Narrator") {
-        dimAll();
-        return;
-    }
-
-    const char = characters[step.speaker];
-    
-    if (!char || !char.sprites) return;
-
-    const target = char.side === "left" ? ui.avatarLeft : ui.avatarRight;
-    const emotion = step.emotion || "normal";
-    
-    if (target && char.sprites[emotion]) {
-        target.src = char.sprites[emotion]; 
-        target.classList.add("active");     
-        target.classList.remove("inactive");
-    }
-
-    dimOther(char.side);
-}
-
-// --- 輔助功能 ---
-
-function resetAvatars() {
-    if (ui.avatarLeft) ui.avatarLeft.className = "avatar left";
-    if (ui.avatarRight) ui.avatarRight.className = "avatar right";
-}
-
-function dimOther(activeSide) {
-    if (activeSide === "left" && ui.avatarRight) ui.avatarRight.classList.add("inactive");
-    if (activeSide === "right" && ui.avatarLeft) ui.avatarLeft.classList.add("inactive");
-}
-
-function dimAll() {
-    if (ui.avatarLeft) ui.avatarLeft.classList.add("inactive");
-    if (ui.avatarRight) ui.avatarRight.classList.add("inactive");
-}
-
-// --- 章節選單邏輯 ---
-
-function setupChapterMenu() {
-    if (!ui.chapterBtn || !ui.chapterMenu) return;
-
-    const chapters = scenario
-        .map((step, index) => step.chapter ? { title: step.chapter, index } : null)
-        .filter(Boolean);
-
-    ui.chapterBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); 
-        openChapterMenu(chapters);
-    });
-
-    ui.chapterMenu.addEventListener("click", () => {
-        ui.chapterMenu.hidden = true;
-    });
-}
-
-function openChapterMenu(chapters) {
-    ui.chapterMenu.innerHTML = "<h2>章節選擇</h2>";
-
-    chapters.forEach(ch => {
-        const div = document.createElement("div");
-        div.className = "chapter-item";
-        div.textContent = ch.title;
-        div.style.cursor = "pointer"; 
-        div.style.padding = "10px";   
-        
-        div.onclick = (e) => {
-            e.stopPropagation();
-            jumpToChapter(ch.index);
-        };
-        
-        ui.chapterMenu.appendChild(div);
-    });
-
-    ui.chapterMenu.hidden = false;
-}
-
-function jumpToChapter(index) {
-    state.index = index;
-    ui.chapterMenu.hidden = true;
-    nextStep();
-}
-
-// ✅ 這裡才是最後一行：啟動遊戲
-// 把啟動指令放在檔案最下面，確保所有變數都已經準備好了
-console.log("引擎啟動！");
-initGame();
+                if
