@@ -3,7 +3,7 @@ export const state = {
   index: 0,           // 目前讀到第幾句
   history: [],        // 用來存歷史紀錄
   chapter: 1,         // (預留) 目前章節
-  flags: {},          // 👈 修正：這裡補上了逗號
+  flags: {},          // 用來記錄選項或好感度
   textQueue: []       // 用來存「還沒講完的文字」
 };
 
