@@ -65,7 +65,7 @@ function initGame() {
 // --- 核心運作邏輯 ---
 
 // 設定：大約多少字換一頁？
-const CHAR_LIMIT = 60; 
+const CHAR_LIMIT = 100; 
 
 function nextStep() {
     // 1. 【檢查佇列】優先處理還沒講完的話 (文字切割)
