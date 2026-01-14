@@ -9,7 +9,7 @@ export const characters = {
   "久世　傾": {
     side: "right",
     nameColor: "#E6CAFF",
-    color: "black",
+    textColor: "black",
     sprites: {
       normal: "assets/char/947.png"
     }
