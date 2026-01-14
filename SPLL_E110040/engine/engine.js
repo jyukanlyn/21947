@@ -1,8 +1,8 @@
 import { scenario } from "../data/scenario.js";
 import { characters } from "../data/characters.js";
-import { state } from "./state.js";
+// 修正 1：必須引入 backgrounds，否則無法讀取圖片路徑
+import { state, backgrounds } from "./state.js"; 
 
-// 1. 確保 DOM 載入後再執行，避免抓不到元素
 document.addEventListener("DOMContentLoaded", () => {
     initGame();
 });
@@ -16,24 +16,19 @@ const ui = {
     gameScreen: document.getElementById("game-screen"),
     chapterBtn: document.getElementById("chapter-btn"),
     chapterMenu: document.getElementById("chapter-menu"),
-    bgContainer: document.body // 假設背景是換 body 或特定 div，請依需求調整
+    bgContainer: document.body 
 };
 
 // --- 初始化 ---
 function initGame() {
-    // 綁定主畫面點擊事件
     ui.gameScreen.addEventListener("click", nextStep);
-    
-    // 綁定章節按鈕
     setupChapterMenu();
 
-    // 2. 自動執行第一步，或是渲染初始狀態
-    // 如果 state.index 是 0，我們需要手動渲染第一幀，或者直接呼叫 nextStep()
+    // 檢查是否為新遊戲
     if (state.index === 0 && scenario.length > 0) {
-        // 這裡選擇直接執行一次 nextStep 來顯示開頭
         nextStep(); 
     } else {
-        // 如果是讀取存檔 (index > 0)，則渲染當前進度
+        // 讀取進度
         render(scenario[state.index - 1] || scenario[0]);
     }
 }
@@ -41,17 +36,13 @@ function initGame() {
 // --- 核心邏輯 ---
 
 function nextStep() {
-    // 檢查是否結束
     if (state.index >= scenario.length) {
         console.log("劇本結束");
         return;
     }
 
     const step = scenario[state.index];
-    
-    // 更新索引 (先取出 step 再 +1，確保邏輯清晰)
     state.index++;
-
     render(step);
 }
 
@@ -59,37 +50,34 @@ function render(step) {
     if (!step) return;
 
     // 1. 處理背景
-    // 修正：這裡移除了原本的 return，確保換背景時也會繼續執行下面的顯示文字
     if (step.bg) {
         changeBackground(step.bg);
     }
 
     // 2. 處理文字
-    // 修正：加入 || "" 防止資料缺漏時顯示 undefined
     const speakerName = (step.speaker === "Narrator" || !step.speaker) ? "" : step.speaker;
     
-    // 注意：這裡使用您原本宣告的變數名稱 (namePlate, textBox)
-    namePlate.textContent = speakerName;
-    textBox.textContent = step.text || "";
+    // 修正 2：使用 ui 物件來存取元素
+    ui.namePlate.textContent = speakerName;
+    ui.textBox.textContent = step.text || "";
 
     // 3. 處理立繪
     updateCharacters(step);
 }
 
-// 4. 補上這個新函數 (原本缺少的)
-function changeBackground(bgImage) {
-    const gameScreen = document.getElementById("game-screen");
-    if (gameScreen) {
-        // 假設您的圖片是在 images 資料夾，且副檔名是 jpg (請依實際情況修改)
-        // 如果您的 bgImage 已經包含路徑 (如 "images/room.jpg")，就直接用 bgImage
-        gameScreen.style.backgroundImage = `url('images/${bgImage}.jpg')`; 
-        
-        // 設定背景填滿模式，確保圖片不重複且覆蓋整個螢幕
-        gameScreen.style.backgroundSize = "cover"; 
-        gameScreen.style.backgroundPosition = "center";
+function changeBackground(bgName) {
+    // 修正 3：直接使用 ui.gameScreen，並檢查 backgrounds 是否存在
+    const bgPath = backgrounds[bgName];
+
+    if (ui.gameScreen && bgPath) {
+        ui.gameScreen.style.backgroundImage = `url('${bgPath}')`;
+        ui.gameScreen.style.backgroundSize = "cover";
+        ui.gameScreen.style.backgroundPosition = "center";
+    } else {
+        // 如果找不到圖片設定，可以在這裡 debug
+        console.warn(`找不到背景圖片設定或路徑: ${bgName}`);
     }
 }
-
 
 function updateCharacters(step) {
     resetAvatars();
@@ -101,17 +89,15 @@ function updateCharacters(step) {
 
     const char = characters[step.speaker];
     
-    // 安全檢查：確保角色和 sprites 存在
     if (!char || !char.sprites) return;
 
     const target = char.side === "left" ? ui.avatarLeft : ui.avatarRight;
     
-    // 使用預設值避免 undefined
     const emotion = step.emotion || "normal";
     if (char.sprites[emotion]) {
         target.src = char.sprites[emotion];
         target.classList.add("active");
-        target.classList.remove("inactive"); // 確保移除暗淡效果
+        target.classList.remove("inactive");
     }
 
     dimOther(char.side);
@@ -121,9 +107,8 @@ function updateCharacters(step) {
 
 function resetAvatars() {
     [ui.avatarLeft, ui.avatarRight].forEach(a => {
-        // 保持原有的 side class，只重置狀態
         const side = a.classList.contains("left") ? "left" : "right";
-        a.className = `avatar ${side}`; // 重置 class string
+        a.className = `avatar ${side}`;
     });
 }
 
@@ -140,13 +125,12 @@ function dimAll() {
 // --- 章節系統 ---
 
 function setupChapterMenu() {
-    // 產生章節列表
     const chapters = scenario
         .map((step, index) => step.chapter ? { title: step.chapter, index } : null)
         .filter(Boolean);
 
     ui.chapterBtn.addEventListener("click", e => {
-        e.stopPropagation(); // 防止點擊按鈕觸發 nextStep
+        e.stopPropagation();
         openChapterMenu(chapters);
     });
 
@@ -163,9 +147,8 @@ function openChapterMenu(chapters) {
         div.className = "chapter-item";
         div.textContent = ch.title;
         
-        // 點擊章節
         div.onclick = (e) => {
-            e.stopPropagation(); // 防止冒泡
+            e.stopPropagation();
             jumpToChapter(ch.index);
         };
         
@@ -178,8 +161,5 @@ function openChapterMenu(chapters) {
 function jumpToChapter(index) {
     state.index = index;
     ui.chapterMenu.hidden = true;
-    
-    // 跳轉後不需要使用者點擊，直接渲染該行
-    // 注意：因為 nextStep 會 index++，所以這裡直接呼叫 nextStep 即可
     nextStep();
 }
