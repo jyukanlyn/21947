@@ -81,6 +81,8 @@ function render(step) {
     // 修正：加上大括號確保邏輯完整
     if (ui.namePlate) {
         ui.namePlate.textContent = speakerName;
+        // 加入 data-name 屬性，讓 CSS 也可以抓取
+        ui.namePlate.setAttribute("data-name", speakerName); 
 
         // --- 新增：動態改變名字框顏色 ---
         // 1. 先去 characters 資料表找這個角色
