@@ -152,7 +152,6 @@ function prevStep() {
 
     nextStep();
 }
-
 function render(step) {
     if (!step) return;
 
@@ -168,9 +167,11 @@ function render(step) {
         ui.namePlate.textContent = speakerName;
         ui.namePlate.setAttribute("data-name", speakerName); 
 
+        // 取得角色資料
         const charData = characters[step.speaker];
 
         if (charData) {
+            // 顏色設定
             if (charData.nameColor) {
                 ui.namePlate.style.backgroundColor = charData.nameColor;
                 ui.namePlate.style.color = charData.textColor || "white"; 
@@ -179,6 +180,7 @@ function render(step) {
                 ui.namePlate.style.color = ""; 
             }
 
+            // 位置設定
             if (charData.side === "right") {
                 ui.namePlate.classList.add("right-side");
             } else {
@@ -186,13 +188,25 @@ function render(step) {
             }
 
         } else {
+            // 還原預設值
             ui.namePlate.style.backgroundColor = ""; 
             ui.namePlate.style.color = ""; 
             ui.namePlate.classList.remove("right-side"); 
         }
     }
 
-    if (ui.textBox) ui.textBox.textContent = step.text || "";
+    // --- ✨ 修改這裡：文字框內容與樣式切換 ---
+    if (ui.textBox) {
+        ui.textBox.textContent = step.text || "";
+
+        // 判斷：如果是 Narrator，就加上特殊字體樣式
+        if (step.speaker === "Narrator") {
+            ui.textBox.classList.add("narrator-style");
+        } else {
+            // 如果不是旁白（是普通角色），記得要把樣式移除，變回普通字體
+            ui.textBox.classList.remove("narrator-style");
+        }
+    }
 
     // 3. 立繪處理
     updateCharacters(step);
