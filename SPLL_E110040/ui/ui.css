@@ -187,3 +187,80 @@ html, body {
 }
 
 /* ⚠️ 原本最下面的 #background 已經刪除，因為它是多餘的且可能擋住點擊 */
+
+/* --- Log 按鈕 (左上角) --- */
+#log-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 100; /* 確保在最上層 */
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+#log-btn:hover { background: rgba(0,0,0,0.8); }
+
+/* --- Back 按鈕 (對話框左側的三角形) --- */
+#back-btn {
+  position: absolute;
+  left: 15px;         /* 靠左邊 */
+  top: 50%;           /* 垂直置中 */
+  transform: translateY(-50%);
+  
+  font-size: 1.5rem;  /* 大小 */
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  z-index: 20;
+  user-select: none;  /* 防止被選取 */
+  transition: color 0.2s;
+}
+#back-btn:hover {
+  color: #ffcc00;     /* 滑鼠移過去變亮 */
+  transform: translateY(-50%) scale(1.2); /* 稍微放大 */
+}
+
+/* --- Log 視窗 (全螢幕遮罩) --- */
+#log-window {
+  position: absolute;
+  inset: 0;           /* 填滿畫面 */
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 200;       /* 確保蓋過所有東西 */
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  color: white;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #555;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+#log-content {
+  flex: 1;
+  overflow-y: auto;   /* 內容太多時可以捲動 */
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+/* 紀錄裡的單條項目 */
+.log-entry {
+  margin-bottom: 16px;
+  border-bottom: 1px dashed #333;
+  padding-bottom: 8px;
+}
+.log-name {
+  font-weight: bold;
+  color: #ffcc00;     /* 名字顏色 */
+  margin-right: 10px;
+}
+.log-text {
+  color: #ddd;
+}
