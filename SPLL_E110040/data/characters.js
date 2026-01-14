@@ -1,6 +1,6 @@
 export const characters = {
   "二羽 一葉": {
-    side: "left",
+    side: "left";
     nameColor: "#FF5809";
     sprites: {
       normal: "assets/char/21.png"
