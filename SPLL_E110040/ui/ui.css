@@ -16,34 +16,22 @@ html, body {
   width: 100vw;
   height: 100vh;
   /* 這裡只要設定預設圖片就好，JS 會去換掉它 */
-  /* ../assets 的路徑是假設 css 檔在 ui/ 資料夾，而 assets 在上一層 */
   background-image: url("../assets/bg/room.png");
   background-size: cover;
   background-position: center;
   cursor: pointer;
-  
-  /* 讓這個 div 成為定位基準 */
   z-index: 1; 
 }
 
-/* --- 新增：獨立的變暗遮罩 --- */
-/* 這樣無論 JS 怎麼換背景圖片，這層半透明黑色永遠都在，確保文字清晰 */
+/* --- 獨立的變暗遮罩 --- */
 #game-screen::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8));
-  pointer-events: none; /* 讓點擊可以穿透遮罩 */
-  z-index: -1; /* 放在內容之下，但需配合 game-screen 的 z-index 管理 */
+  pointer-events: none;
+  z-index: -1; 
 }
-/* 為了讓 ::after 生效且不擋住內容，我們調整一下層級策略：
-   比較簡單的做法是：不要用 ::after，直接讓 dialogue-box 背景深一點，
-   或者保留原本寫法但 JS 改寫。
-   
-   但為了不改 JS，我們採取最穩定的寫法：
-   直接讓 #game-screen 顯示圖，
-   然後文字框保持深色背景。
-*/
 
 /* ===== 角色 ===== */
 #avatar-container {
@@ -51,7 +39,7 @@ html, body {
   bottom: calc(var(--dialogue-height) + 20px);
   width: 100%;
   height: 60vh;
-  pointer-events: none; /* 關鍵：讓滑鼠點擊穿透角色區域，點到 game-screen */
+  pointer-events: none; /* 讓滑鼠點擊穿透角色區域 */
   z-index: 5;
 }
 
@@ -93,87 +81,160 @@ html, body {
   width: 90%;
   max-width: 900px;
   height: var(--dialogue-height);
-  background: rgba(0,0,0,.85); /* 深色背景確保文字清晰 */
+  background: rgba(0,0,0,.85);
   border-radius: 10px;
-  padding: 20px;
+  
+  /* 👇 修改這裡：左邊 padding 加大到 60px，避免文字壓到「上一頁」箭頭 */
+  padding: 20px 20px 20px 60px; 
+  
   box-sizing: border-box;
   color: white;
-  z-index: 10; /* 確保在最上層 */
-  
-  /* 讓點擊對話框也能觸發下一句 (因為事件冒泡) */
+  z-index: 10;
   pointer-events: auto; 
 }
 
-/* 1. 修改原本的 #name-plate，加入過渡動畫讓移動更滑順 */
+/* 名字框 */
 #name-plate {
   position: absolute;
   top: -28px;
-  
-  /* 預設位置：在左邊 */
   left: 20px;  
   right: auto; /* 清除右邊設定 */
 
-  /* 其他樣式保持不變 */
   background: #ffcc00;
   color: black;
   padding: 4px 16px;
   border-radius: 5px;
   font-weight: bold;
   
-  /* ✨ 新增：讓位置移動有滑順的動畫 */
+  /* 移動動畫 */
   transition: all 0.3s ease;
 }
 
-/* 2. 新增：當名字框跑到右邊時的樣式 */
+/* 當名字框跑到右邊時的樣式 */
 #name-plate.right-side {
-  left: auto;  /* 清除左邊設定 */
-  right: 20px; /* 改成靠右 */
+  left: auto; 
+  right: 20px; 
 }
 
-/* 👇 請新增這一整段 👇 */
-/* 這段的意思是：如果 name-plate 裡面「沒有文字」，就把它隱藏起來 */
+/* 如果沒名字則隱藏 */
 #name-plate:empty {
   display: none;
 }
 
-
-
 #dialogue-text {
   white-space: pre-wrap;
   line-height: 1.6;
-  font-size: 1.1rem; /*稍微大一點比較好讀*/
+  font-size: 1.1rem;
 }
 
+/* ===== 按鈕區 ===== */
+
+/* 章節按鈕 (右上角) */
 #chapter-btn {
   position: absolute;
-  
-  /* 👇 改成 Top (距離頂部) */
   top: 20px;
-  
-  /* 👇 Right (距離右邊) */
   right: 20px;
-  
-  /* 其他樣式保持不變 */
   background: rgba(255,255,255,.15);
   color: white;
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
-  
-  /* 👇 確保按鈕浮在最上面，不會被立繪擋住 */
   z-index: 20; 
 }
+#chapter-btn:hover { background: rgba(255,255,255,.3); }
 
-#chapter-menu {
+/* Log 按鈕 (左上角) */
+#log-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 100; 
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+#log-btn:hover { background: rgba(0,0,0,0.8); border-color: white; }
+
+/* Back 按鈕 (對話框左側的三角形) */
+#back-btn {
+  position: absolute;
+  left: 15px;         
+  top: 50%;           
+  transform: translateY(-50%);
+  
+  font-size: 1.5rem;  
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  z-index: 20;
+  user-select: none;  
+  transition: color 0.2s;
+}
+#back-btn:hover {
+  color: #ffcc00;     
+  transform: translateY(-50%) scale(1.2); 
+}
+
+/* ===== Log 視窗 ===== */
+#chapter-menu, #log-window {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.95); /* 加深一點防止透出背景太亂 */
+  background: rgba(0,0,0,.95);
   color: white;
   padding: 40px;
   box-sizing: border-box;
   overflow-y: auto;
-  z-index: 100; /* 確保蓋過所有東西 */
+  z-index: 200; 
+}
+
+/* 統一設定 Log 視窗跟章節視窗裡的關閉/選項樣式 */
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #555;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* 👇 新增：美化 Log 視窗裡的關閉按鈕 */
+#close-log-btn {
+  background: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#close-log-btn:hover {
+  background: #fff;
+  color: #000;
+}
+
+#log-content {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.log-entry {
+  margin-bottom: 16px;
+  border-bottom: 1px dashed #333;
+  padding-bottom: 8px;
+}
+
+.log-name {
+  font-weight: bold;
+  color: #ffcc00; 
+  margin-right: 10px;
+}
+
+.log-text {
+  color: #ddd;
 }
 
 .chapter-item {
@@ -184,83 +245,4 @@ html, body {
 
 .chapter-item:hover {
   color: #ffcc00;
-}
-
-/* ⚠️ 原本最下面的 #background 已經刪除，因為它是多餘的且可能擋住點擊 */
-
-/* --- Log 按鈕 (左上角) --- */
-#log-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 100; /* 確保在最上層 */
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 16px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-#log-btn:hover { background: rgba(0,0,0,0.8); }
-
-/* --- Back 按鈕 (對話框左側的三角形) --- */
-#back-btn {
-  position: absolute;
-  left: 15px;         /* 靠左邊 */
-  top: 50%;           /* 垂直置中 */
-  transform: translateY(-50%);
-  
-  font-size: 1.5rem;  /* 大小 */
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  z-index: 20;
-  user-select: none;  /* 防止被選取 */
-  transition: color 0.2s;
-}
-#back-btn:hover {
-  color: #ffcc00;     /* 滑鼠移過去變亮 */
-  transform: translateY(-50%) scale(1.2); /* 稍微放大 */
-}
-
-/* --- Log 視窗 (全螢幕遮罩) --- */
-#log-window {
-  position: absolute;
-  inset: 0;           /* 填滿畫面 */
-  background: rgba(0, 0, 0, 0.9);
-  z-index: 200;       /* 確保蓋過所有東西 */
-  display: flex;
-  flex-direction: column;
-  padding: 40px;
-  color: white;
-}
-
-.log-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #555;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-}
-
-#log-content {
-  flex: 1;
-  overflow-y: auto;   /* 內容太多時可以捲動 */
-  font-size: 1.1rem;
-  line-height: 1.8;
-}
-
-/* 紀錄裡的單條項目 */
-.log-entry {
-  margin-bottom: 16px;
-  border-bottom: 1px dashed #333;
-  padding-bottom: 8px;
-}
-.log-name {
-  font-weight: bold;
-  color: #ffcc00;     /* 名字顏色 */
-  margin-right: 10px;
-}
-.log-text {
-  color: #ddd;
 }
