@@ -178,4 +178,187 @@ function render(step) {
             const charData = characters[step.speaker];
 
             if (charData) {
-                if
+                if (charData.nameColor) {
+                    ui.namePlate.style.backgroundColor = charData.nameColor;
+                    ui.namePlate.style.color = charData.textColor || "white"; 
+                } else {
+                    ui.namePlate.style.backgroundColor = ""; 
+                    ui.namePlate.style.color = ""; 
+                }
+            } else {
+                // 預設樣式
+                ui.namePlate.style.backgroundColor = ""; 
+                ui.namePlate.style.color = ""; 
+            }
+
+            // ✨ 【修改 1】強制移除 right-side 樣式，確保名字框永遠在左邊
+            ui.namePlate.classList.remove("right-side"); 
+        }
+    }
+
+    // 文字框樣式 (Narrator 字體)
+    if (ui.textBox) {
+        ui.textBox.textContent = step.text || "";
+    }
+
+    // 3. 立繪處理
+    updateCharacters(step);
+}
+
+// ✨ 顯示歷史紀錄視窗
+function showLog() {
+    if (!ui.logContent) return;
+    const list = ui.logContent;
+    list.innerHTML = ""; 
+
+    const currentStep = scenario[state.index - 1];
+    const displayHistory = [...state.history]; 
+    
+    if (currentStep) {
+        displayHistory.push({
+            speaker: currentStep.speaker || "",
+            text: currentStep.text || ""
+        });
+    }
+
+    displayHistory.forEach(log => {
+        if (!log.text) return;
+        const div = document.createElement("div");
+        div.className = "log-entry";
+        
+        if (log.speaker && log.speaker !== "Narrator") {
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "log-name";
+            nameSpan.textContent = log.speaker + "：";
+            div.appendChild(nameSpan);
+        }
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "log-text";
+        textSpan.textContent = log.text;
+        div.appendChild(textSpan);
+
+        list.appendChild(div);
+    });
+
+    ui.logWindow.hidden = false;
+    setTimeout(() => {
+        list.scrollTop = list.scrollHeight;
+    }, 10);
+}
+
+function changeBackground(bgID) {
+    const bgPath = backgrounds[bgID];
+
+    if (bgPath) {
+        ui.gameScreen.style.backgroundImage = `url('${bgPath}')`;
+        ui.gameScreen.style.backgroundSize = "cover";     
+        ui.gameScreen.style.backgroundPosition = "center"; 
+    } else {
+        console.warn(`警告：在 state.js 中找不到背景代號 '${bgID}'`);
+    }
+}
+
+// ✨ 【修改 2】重寫立繪邏輯：強制只顯示說話者在左邊
+function updateCharacters(step) {
+    // 1. 強制隱藏右邊立繪 (因為我們只用左邊)
+    if (ui.avatarRight) {
+        ui.avatarRight.style.display = "none";
+        ui.avatarRight.classList.remove("active");
+    }
+
+    // 2. 先把左邊立繪也隱藏並重置 (預設為空)
+    // 這樣如果是 Narrator 或沒立繪的人說話，畫面上就不會有人
+    if (ui.avatarLeft) {
+        ui.avatarLeft.src = "";
+        ui.avatarLeft.style.display = "none"; // 先藏起來
+        ui.avatarLeft.classList.remove("active");
+        ui.avatarLeft.className = "avatar left"; // 重置 class
+    }
+
+    // 3. 如果是旁白，做到這裡就結束 (畫面上無人)
+    if (step.speaker === "Narrator") {
+        return;
+    }
+
+    // 4. 檢查該角色是否有立繪
+    const char = characters[step.speaker];
+    
+    // 如果角色資料不存在，或沒有 sprites 設定，也結束
+    if (!char || !char.sprites) return;
+
+    const emotion = step.emotion || "normal";
+    
+    // 5. 如果有對應表情的圖片，就顯示在【左邊】
+    if (char.sprites[emotion]) {
+        if (ui.avatarLeft) {
+            ui.avatarLeft.src = char.sprites[emotion];
+            ui.avatarLeft.style.display = "block"; // 顯示出來
+            
+            // 加入 active 讓它變亮/出現
+            ui.avatarLeft.classList.add("active");
+            ui.avatarLeft.classList.remove("inactive");
+        }
+    }
+}
+
+// --- 輔助功能 ---
+
+function resetAvatars() {
+    if (ui.avatarLeft) ui.avatarLeft.className = "avatar left";
+    if (ui.avatarRight) ui.avatarRight.className = "avatar right";
+}
+
+// dimOther 和 dimAll 在新邏輯下其實用不到了，但為了避免報錯先留著
+function dimOther(activeSide) {}
+function dimAll() {}
+
+// --- 章節選單邏輯 ---
+
+function setupChapterMenu() {
+    if (!ui.chapterBtn || !ui.chapterMenu) return;
+
+    const chapters = scenario
+        .map((step, index) => step.chapter ? { title: step.chapter, index } : null)
+        .filter(Boolean);
+
+    ui.chapterBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); 
+        openChapterMenu(chapters);
+    });
+
+    ui.chapterMenu.addEventListener("click", () => {
+        ui.chapterMenu.hidden = true;
+    });
+}
+
+function openChapterMenu(chapters) {
+    ui.chapterMenu.innerHTML = "<h2>章節選擇</h2>";
+
+    chapters.forEach(ch => {
+        const div = document.createElement("div");
+        div.className = "chapter-item";
+        div.textContent = ch.title;
+        div.style.cursor = "pointer"; 
+        div.style.padding = "10px";   
+        
+        div.onclick = (e) => {
+            e.stopPropagation();
+            jumpToChapter(ch.index);
+        };
+        
+        ui.chapterMenu.appendChild(div);
+    });
+
+    ui.chapterMenu.hidden = false;
+}
+
+function jumpToChapter(index) {
+    state.index = index;
+    ui.chapterMenu.hidden = true;
+    nextStep();
+}
+
+// ✅ 這裡才是最後一行：啟動遊戲
+console.log("引擎啟動！");
+initGame();
