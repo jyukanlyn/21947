@@ -206,24 +206,6 @@ function render(step) {
     // 文字框樣式 (Narrator 字體)
     if (ui.textBox) {
         ui.textBox.textContent = step.text || "";
-
-        if (step.speaker === "Narrator") {
-            ui.textBox.classList.add("narrator-style");
-        } else {
-            ui.textBox.classList.remove("narrator-style");
-        }
-    }
-
-    // --- ✨ 特殊事件圖片 (骰子) ---
-    // (如果您上一部有加骰子功能，這裡保留給您)
-    if (ui.eventImage) {
-        if (step.special === "dice") {
-            ui.eventImage.src = "assets/effect/dice.png";
-            ui.eventImage.hidden = false; 
-        } else {
-            ui.eventImage.hidden = true;
-            ui.eventImage.src = ""; 
-        }
     }
 
     // 3. 立繪處理
