@@ -16,7 +16,7 @@ html, body {
   width: 100vw;
   height: 100vh;
   /* 這裡只要設定預設圖片就好，JS 會去換掉它 */
-  background-image: url("../assets/bg/room.png");
+  background-image: url("assets/bg/bedroom.png");
   background-size: cover;
   background-position: center;
   cursor: pointer;
