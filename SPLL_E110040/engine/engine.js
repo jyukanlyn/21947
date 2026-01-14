@@ -18,6 +18,12 @@ const ui = {
     gameScreen: document.getElementById("game-screen"),
     chapterBtn: document.getElementById("chapter-btn"),
     chapterMenu: document.getElementById("chapter-menu"),
+    // 👇 新增：歷史紀錄與上一頁相關按鈕
+    logBtn: document.getElementById("log-btn"),
+    logWindow: document.getElementById("log-window"),
+    logContent: document.getElementById("log-content"),
+    closeLogBtn: document.getElementById("close-log-btn"),
+    backBtn: document.getElementById("back-btn"),
 };
 
 // --- 初始化系統 ---
@@ -32,6 +38,23 @@ function initGame() {
     ui.gameScreen.addEventListener("click", nextStep);
     setupChapterMenu();
 
+    // 👇 新增按鈕事件綁定 (紀錄 & 上一頁)
+    if (ui.logBtn) ui.logBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); 
+        showLog();
+    });
+
+    if (ui.closeLogBtn) ui.closeLogBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        ui.logWindow.hidden = true;
+    });
+
+    if (ui.backBtn) ui.backBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); 
+        prevStep();
+    });
+
+    // 初始渲染
     if (state.index === 0 && scenario.length > 0) {
         nextStep(); 
     } else {
@@ -40,23 +63,17 @@ function initGame() {
 }
 
 // --- 核心運作邏輯 ---
-// 修改 engine/engine.js 裡的 nextStep 函數
 
 // 設定：大約多少字換一頁？
-// 手機一行大約 18-20 字，3 行大約是 60 字。您可以依需求調整這個數字。
 const CHAR_LIMIT = 60; 
 
 function nextStep() {
-    // 1. 【檢查佇列】優先處理還沒講完的話
+    // 1. 【檢查佇列】優先處理還沒講完的話 (文字切割)
     if (state.textQueue && state.textQueue.length > 0) {
-        // 取出佇列中的第一段
         const nextChunk = state.textQueue.shift();
-        
-        // 直接更新對話框，不重新 render 整個人物背景，節省效能
         ui.textBox.textContent = nextChunk;
-        
         console.log("顯示剩餘文字:", nextChunk);
-        return; // ⚠️ 重要：直接結束，不讓 state.index + 1
+        return; 
     }
 
     // 2. 檢查劇本是否結束
@@ -65,38 +82,58 @@ function nextStep() {
         return;
     }
 
-    // 3. 取得新的步驟
-    // 注意：這裡我們先用一個變數存起來，不要直接改原始資料
-    // 我們使用 {...obj} 來複製一份資料，避免污染原始劇本
+    // --- 💾 3. 存入歷史紀錄 (新增功能) ---
+    if (state.index > 0) {
+        const currentStep = scenario[state.index - 1]; 
+        // 防呆：避免重複存入
+        const lastLog = state.history[state.history.length - 1];
+        if (!lastLog || lastLog.index !== state.index - 1) {
+             state.history.push({
+                index: state.index - 1,
+                speaker: currentStep.speaker || "",
+                text: currentStep.text || ""
+            });
+        }
+    }
+
+    // 4. 取得新的步驟
+    // 使用 {...obj} 複製，避免污染原始資料
     let step = { ...scenario[state.index] }; 
     
-    // 索引 +1 (指向下一步)
     state.index++;
+    state.textQueue = []; // 清空舊的文字佇列
 
-    // 4. 【文字切割邏輯】
-    // 如果這一步有文字，且文字長度超過限制
+    // 5. 【文字切割邏輯】
     if (step.text && step.text.length > CHAR_LIMIT) {
-        
         const fullText = step.text;
         const chunks = [];
-
-        // 把長文字切成好幾塊
         for (let i = 0; i < fullText.length; i += CHAR_LIMIT) {
             chunks.push(fullText.substring(i, i + CHAR_LIMIT));
         }
-
-        // 第一塊文字：馬上要顯示的，放回 step 物件
-        step.text = chunks.shift(); // 取出第一個
-
-        // 剩下的文字：存入佇列，等待之後的點擊
+        step.text = chunks.shift(); 
         state.textQueue = chunks; 
-        
         console.log(`文字太長，已切割成 ${chunks.length + 1} 段`);
     }
 
     // 執行渲染
     console.log(`執行步驟 ${state.index}:`, step);
     render(step);
+}
+
+// ✨ 上一頁功能 (新增)
+function prevStep() {
+    if (state.index <= 1) return; 
+
+    // 索引倒退 2 格 (因為執行 nextStep 會 +1，所以要扣 2 才能回到上一句)
+    state.index -= 2;
+
+    // 刪除最後一筆紀錄 (時光倒流)
+    state.history.pop();
+    
+    // 清空未讀佇列
+    state.textQueue = [];
+
+    nextStep();
 }
 
 function render(step) {
@@ -114,36 +151,33 @@ function render(step) {
         ui.namePlate.textContent = speakerName;
         ui.namePlate.setAttribute("data-name", speakerName); 
 
-        // --- 動態改變名字框顏色 ---
+        // 取得角色資料
         const charData = characters[step.speaker];
 
-        // A. 顏色設定 判斷：如果角色存在，且有設定 nameColor
-        if (charData && charData.nameColor) {
-            ui.namePlate.style.backgroundColor = charData.nameColor;
+        // ⚠️ 修正後的邏輯：先判斷有沒有 charData，再分別處理顏色和位置
+        if (charData) {
             
-            // 👇 優先使用設定檔裡的 textColor，如果沒設定才用白色
-            ui.namePlate.style.color = charData.textColor || "white"; 
+            // --- A. 顏色設定 ---
+            if (charData.nameColor) {
+                ui.namePlate.style.backgroundColor = charData.nameColor;
+                ui.namePlate.style.color = charData.textColor || "white"; 
             } else {
                 ui.namePlate.style.backgroundColor = ""; 
                 ui.namePlate.style.color = ""; 
             }
 
-            // --- B. 位置設定 (✨ 新增這裡！) ---
-            // 判斷角色在左邊還是右邊
+            // --- B. 位置設定 (跟隨角色移動) ---
             if (charData.side === "right") {
-                // 如果是右邊的角色，加上 .right-side
                 ui.namePlate.classList.add("right-side");
             } else {
-                // 如果是左邊的角色 (或沒寫)，移除 .right-side
                 ui.namePlate.classList.remove("right-side");
             }
 
-            
         } else {
-            // 如果沒設定，或者此時是旁白，回復成 CSS 的預設值
+            // 如果沒設定(或是旁白)，全部還原預設值
             ui.namePlate.style.backgroundColor = ""; 
             ui.namePlate.style.color = ""; 
-            ui.namePlate.classList.remove("right-side"); // 還原位置到左邊
+            ui.namePlate.classList.remove("right-side"); 
         }
     }
 
@@ -151,6 +185,49 @@ function render(step) {
 
     // 3. 立繪處理
     updateCharacters(step);
+}
+
+// ✨ 顯示歷史紀錄視窗 (新增)
+function showLog() {
+    if (!ui.logContent) return;
+    const list = ui.logContent;
+    list.innerHTML = ""; 
+
+    // 把當前畫面這句也加進去顯示
+    const currentStep = scenario[state.index - 1];
+    const displayHistory = [...state.history]; 
+    
+    if (currentStep) {
+        displayHistory.push({
+            speaker: currentStep.speaker || "",
+            text: currentStep.text || ""
+        });
+    }
+
+    displayHistory.forEach(log => {
+        if (!log.text) return;
+        const div = document.createElement("div");
+        div.className = "log-entry";
+        
+        if (log.speaker && log.speaker !== "Narrator") {
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "log-name";
+            nameSpan.textContent = log.speaker + "：";
+            div.appendChild(nameSpan);
+        }
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "log-text";
+        textSpan.textContent = log.text;
+        div.appendChild(textSpan);
+
+        list.appendChild(div);
+    });
+
+    ui.logWindow.hidden = false;
+    setTimeout(() => {
+        list.scrollTop = list.scrollHeight;
+    }, 10);
 }
 
 function changeBackground(bgID) {
