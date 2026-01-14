@@ -170,7 +170,6 @@ function prevStep() {
 
     nextStep();
 }
-
 function render(step) {
     if (!step) return;
 
@@ -180,7 +179,12 @@ function render(step) {
     }
 
     // 2. 文字處理
-    const speakerName = (step.speaker === "Narrator" || !step.speaker) ? "" : step.speaker;
+    // ❌ 舊寫法：強制把 Narrator 變成空字串
+    // const speakerName = (step.speaker === "Narrator" || !step.speaker) ? "" : step.speaker;
+    
+    // ✅ 新寫法：直接使用劇本裡的名字 (如果是 undefined 就變空字串)
+    // 這樣如果劇本寫 "Narrator"，名字框就會顯示 "Narrator" 並讀取設定
+    const speakerName = step.speaker || "";
     
     if (ui.namePlate) {
         ui.namePlate.textContent = speakerName;
@@ -189,7 +193,6 @@ function render(step) {
         // 取得角色資料
         const charData = characters[step.speaker];
 
-        // ⚠️ 修正後的邏輯：先判斷有沒有 charData，再分別處理顏色和位置
         if (charData) {
             
             // --- A. 顏色設定 ---
@@ -201,7 +204,7 @@ function render(step) {
                 ui.namePlate.style.color = ""; 
             }
 
-            // --- B. 位置設定 (跟隨角色移動) ---
+            // --- B. 位置設定 ---
             if (charData.side === "right") {
                 ui.namePlate.classList.add("right-side");
             } else {
@@ -209,7 +212,7 @@ function render(step) {
             }
 
         } else {
-            // 如果沒設定(或是旁白)，全部還原預設值
+            // 如果沒設定角色資料 (例如完全沒寫 speaker)，還原預設值
             ui.namePlate.style.backgroundColor = ""; 
             ui.namePlate.style.color = ""; 
             ui.namePlate.classList.remove("right-side"); 
