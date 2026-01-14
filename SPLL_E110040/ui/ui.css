@@ -131,7 +131,7 @@ html, body {
 /* 對話內容 */
 #dialogue-text {
   position: absolute;
-  top: 0; left: 0;
+  top: 0; left: 10%;
   width: 100%; height: 100%;
   
   color: white;
@@ -142,11 +142,10 @@ html, body {
   /* ✨ 關鍵：模擬第一行留空 */
   padding-top: 60px; 
   
-  padding-left: 30px;
-  padding-right: 30px;
-  padding-bottom: 20px;
+  padding-left: 60px;
+  padding-right: 60px;
+  padding-bottom: 30px;
   box-sizing: border-box;
-  overflow-y: auto; /* 文字太多可捲動 */
 }
 
 /* ===== 按鈕區 ===== */
@@ -290,7 +289,6 @@ html, body {
 .narrator-style {
   font-family: "MyNarratorFont", serif;
   font-size: 1.1rem;
-  font-style: italic; /* 可以選擇要不要斜體 */
   color: #dddddd; 
   letter-spacing: 1px;
 }
