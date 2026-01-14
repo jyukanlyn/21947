@@ -1,12 +1,5 @@
 /* ui/ui.css */
 
-/* 1. 註冊新字體 */
-@font-face {
-  font-family: "MyNarratorFont";
-  /* 👇 注意路徑是否正確 */
-  src: url("../assets/fonts/NarratorFont.otf"); 
-}
-
 :root {
   --dialogue-height: 180px;
 }
@@ -287,12 +280,4 @@ html, body {
   display: none !important;
   pointer-events: none !important;
   visibility: hidden !important;
-}
-
-/* 旁白專用字體 */
-.narrator-style {
-  font-family: "MyNarratorFont", serif;
-  font-size: 1.1rem;
-  color: #dddddd; 
-  letter-spacing: 1px;
 }
