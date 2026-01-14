@@ -4,7 +4,7 @@
 @font-face {
   font-family: "MyNarratorFont";
   /* 👇 注意路徑是否正確 */
-  src: url("../assets/fonts/KozMinPr6N-Bold.otf"); 
+  src: url("../assets/fonts/KozGoPro-Regular.otf"); 
 }
 
 :root {
