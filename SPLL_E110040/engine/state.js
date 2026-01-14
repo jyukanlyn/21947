@@ -1,10 +1,16 @@
 // 遊戲狀態 (存檔相關資料放這裡)
 export const state = {
   index: 0,           // 目前讀到第幾句
-  history: [],        // 用來存歷史紀錄
-  chapter: 1,         // (預留) 目前章節
-  flags: {},          // 用來記錄選項或好感度
-  textQueue: []       // 用來存「還沒講完的文字」
+  history: [],        // (文字紀錄用) 用來存 LOG 內容
+  backStack: [],      // ✨ (新增) 用來存「每一頁的狀態快照」，給上一頁功能專用
+  chapter: 1,         // 目前章節
+  flags: {},          // 選項或好感度
+  textQueue: []       // 還沒講完的文字
+};
+
+export const backgrounds = {
+  room: "assets/bg/bedroom.png",
+  // ... 其他背景保持原樣 ...
 };
 
 // 背景圖片對照表 (註冊場景 ID 對應的路徑)
