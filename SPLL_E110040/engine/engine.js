@@ -79,6 +79,22 @@ function render(step) {
     const speakerName = (step.speaker === "Narrator" || !step.speaker) ? "" : step.speaker;
     
     if (ui.namePlate) ui.namePlate.textContent = speakerName;
+    // --- 新增：動態改變名字框顏色 ---
+        
+        // 1. 先去 characters 資料表找這個角色
+        const charData = characters[step.speaker];
+
+        // 2. 判斷：如果角色存在，且有設定 nameColor
+        if (charData && charData.nameColor) {
+            ui.namePlate.style.backgroundColor = charData.nameColor;
+            // 如果顏色較深，建議強制把文字變白，不然會看不清楚
+            ui.namePlate.style.color = "white"; 
+        } else {
+            // 3. 如果沒設定，或者此時是旁白/路人，清除行內樣式 (回復成 CSS 的預設黃色)
+            ui.namePlate.style.backgroundColor = ""; 
+            ui.namePlate.style.color = ""; 
+        }
+    }
     if (ui.textBox) ui.textBox.textContent = step.text || "";
 
     // 3. 立繪處理
