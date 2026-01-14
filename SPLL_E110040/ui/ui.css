@@ -104,15 +104,30 @@ html, body {
   pointer-events: auto; 
 }
 
+/* 1. 修改原本的 #name-plate，加入過渡動畫讓移動更滑順 */
 #name-plate {
   position: absolute;
   top: -28px;
-  left: 20px;
-  background: #ffcc00;  /* 黃色背景 */
+  
+  /* 預設位置：在左邊 */
+  left: 20px;  
+  right: auto; /* 清除右邊設定 */
+
+  /* 其他樣式保持不變 */
+  background: #ffcc00;
   color: black;
   padding: 4px 16px;
   border-radius: 5px;
   font-weight: bold;
+  
+  /* ✨ 新增：讓位置移動有滑順的動畫 */
+  transition: all 0.3s ease;
+}
+
+/* 2. 新增：當名字框跑到右邊時的樣式 */
+#name-plate.right-side {
+  left: auto;  /* 清除左邊設定 */
+  right: 20px; /* 改成靠右 */
 }
 
 /* 👇 請新增這一整段 👇 */
@@ -120,6 +135,7 @@ html, body {
 #name-plate:empty {
   display: none;
 }
+
 
 
 #dialogue-text {
