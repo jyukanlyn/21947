@@ -65,10 +65,9 @@ function initGame() {
 // --- 核心運作邏輯 ---
 
 // 設定：大約多少字換一頁？
-const CHAR_LIMIT = 100; 
-
+const CHAR_LIMIT = 80; 
 function nextStep() {
-    // 1. 【檢查佇列】優先處理還沒講完的話 (文字切割)
+    // 1. 【檢查佇列】優先處理還沒講完的話 (Smart Cut)
     if (state.textQueue && state.textQueue.length > 0) {
         const nextChunk = state.textQueue.shift();
         ui.textBox.textContent = nextChunk;
@@ -82,10 +81,9 @@ function nextStep() {
         return;
     }
 
-    // --- 💾 3. 存入歷史紀錄 (新增功能) ---
+    // --- 💾 3. 存入歷史紀錄 ---
     if (state.index > 0) {
         const currentStep = scenario[state.index - 1]; 
-        // 防呆：避免重複存入
         const lastLog = state.history[state.history.length - 1];
         if (!lastLog || lastLog.index !== state.index - 1) {
              state.history.push({
@@ -97,22 +95,59 @@ function nextStep() {
     }
 
     // 4. 取得新的步驟
-    // 使用 {...obj} 複製，避免污染原始資料
     let step = { ...scenario[state.index] }; 
-    
     state.index++;
     state.textQueue = []; // 清空舊的文字佇列
 
-    // 5. 【文字切割邏輯】
+    // 5. 【✨ 聰明換頁邏輯：100字 + 找句號】
     if (step.text && step.text.length > CHAR_LIMIT) {
         const fullText = step.text;
         const chunks = [];
-        for (let i = 0; i < fullText.length; i += CHAR_LIMIT) {
-            chunks.push(fullText.substring(i, i + CHAR_LIMIT));
+        let remaining = fullText;
+
+        while (remaining.length > 0) {
+            // 如果剩下的字少於限制，直接全部塞進去
+            if (remaining.length <= CHAR_LIMIT) {
+                chunks.push(remaining);
+                break;
+            }
+
+            // --- 尋找最佳切割點 ---
+            // 先取出前 CHAR_LIMIT (100) 個字
+            let chunkAttempt = remaining.substring(0, CHAR_LIMIT);
+            
+            // 定義我們要找的標點符號 (句號、驚嘆號、問號、換行、刪節號)
+            const punctuation = ["。", "！", "？", "\n", "…", "」"];
+            
+            let bestSplitIndex = -1;
+
+            // 從後面開始找，看哪個標點符號最接近 100 字的尾端
+            for (let p of punctuation) {
+                const idx = chunkAttempt.lastIndexOf(p);
+                if (idx > bestSplitIndex) {
+                    bestSplitIndex = idx;
+                }
+            }
+
+            let finalCutIndex;
+            
+            if (bestSplitIndex !== -1) {
+                // 找到了標點符號！切割點設在標點符號的「後面」(idx + 1)
+                finalCutIndex = bestSplitIndex + 1;
+            } else {
+                // 沒找到標點符號 (這句話太長了)，只好硬切
+                finalCutIndex = CHAR_LIMIT;
+            }
+
+            // 切割並放入佇列
+            chunks.push(remaining.substring(0, finalCutIndex));
+            // 更新剩下的文字
+            remaining = remaining.substring(finalCutIndex);
         }
-        step.text = chunks.shift(); 
-        state.textQueue = chunks; 
-        console.log(`文字太長，已切割成 ${chunks.length + 1} 段`);
+
+        step.text = chunks.shift(); // 取出第一段
+        state.textQueue = chunks;   // 剩下的存起來
+        console.log(`文字太長，已聰明切割成 ${chunks.length + 1} 段`);
     }
 
     // 執行渲染
