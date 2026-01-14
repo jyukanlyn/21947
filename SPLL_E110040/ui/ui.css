@@ -131,15 +131,23 @@ html, body {
 
 #chapter-btn {
   position: absolute;
-  bottom: 12px;
+  
+  /* 👇 改成 Top (距離頂部) */
+  top: 20px;
+  
+  /* 👇 Right (距離右邊) */
   right: 20px;
+  
+  /* 其他樣式保持不變 */
   background: rgba(255,255,255,.15);
   color: white;
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
-  z-index: 20;
+  
+  /* 👇 確保按鈕浮在最上面，不會被立繪擋住 */
+  z-index: 20; 
 }
 
 #chapter-menu {
