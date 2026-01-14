@@ -55,8 +55,8 @@ function initGame() {
 }
 
 // --- 核心運作邏輯 ---
-
-const CHAR_LIMIT = 40; 
+// 一頁字數
+const CHAR_LIMIT = 60; 
 
 function nextStep() {
     let currentStepData = null;
