@@ -58,28 +58,38 @@ function nextStep() {
 function render(step) {
     if (!step) return;
 
-    // 3. 修正：背景切換不應該阻擋文字顯示
-    // 舊程式碼有 return，導致有背景的那一步會看不到字
+    // 1. 處理背景
+    // 修正：這裡移除了原本的 return，確保換背景時也會繼續執行下面的顯示文字
     if (step.bg) {
         changeBackground(step.bg);
-        // 移除這裡的 return，讓程式繼續往下執行顯示文字
     }
 
-    // 更新文字
-    ui.namePlate.textContent = step.speaker === "Narrator" ? "" : step.speaker;
-    ui.textBox.textContent = step.text;
+    // 2. 處理文字
+    // 修正：加入 || "" 防止資料缺漏時顯示 undefined
+    const speakerName = (step.speaker === "Narrator" || !step.speaker) ? "" : step.speaker;
+    
+    // 注意：這裡使用您原本宣告的變數名稱 (namePlate, textBox)
+    namePlate.textContent = speakerName;
+    textBox.textContent = step.text || "";
 
-    // 更新立繪
+    // 3. 處理立繪
     updateCharacters(step);
 }
 
-// 假設的背景切換函數 (您的原代碼中未定義，需補上避免報錯)
+// 4. 補上這個新函數 (原本缺少的)
 function changeBackground(bgImage) {
-    // 範例實作
-    if(ui.gameScreen) {
-        ui.gameScreen.style.backgroundImage = `url('${bgImage}')`;
+    const gameScreen = document.getElementById("game-screen");
+    if (gameScreen) {
+        // 假設您的圖片是在 images 資料夾，且副檔名是 jpg (請依實際情況修改)
+        // 如果您的 bgImage 已經包含路徑 (如 "images/room.jpg")，就直接用 bgImage
+        gameScreen.style.backgroundImage = `url('images/${bgImage}.jpg')`; 
+        
+        // 設定背景填滿模式，確保圖片不重複且覆蓋整個螢幕
+        gameScreen.style.backgroundSize = "cover"; 
+        gameScreen.style.backgroundPosition = "center";
     }
 }
+
 
 function updateCharacters(step) {
     resetAvatars();
