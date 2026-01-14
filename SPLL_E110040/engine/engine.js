@@ -40,17 +40,62 @@ function initGame() {
 }
 
 // --- 核心運作邏輯 ---
+// 修改 engine/engine.js 裡的 nextStep 函數
+
+// 設定：大約多少字換一頁？
+// 手機一行大約 18-20 字，3 行大約是 60 字。您可以依需求調整這個數字。
+const CHAR_LIMIT = 60; 
 
 function nextStep() {
+    // 1. 【檢查佇列】優先處理還沒講完的話
+    if (state.textQueue && state.textQueue.length > 0) {
+        // 取出佇列中的第一段
+        const nextChunk = state.textQueue.shift();
+        
+        // 直接更新對話框，不重新 render 整個人物背景，節省效能
+        ui.textBox.textContent = nextChunk;
+        
+        console.log("顯示剩餘文字:", nextChunk);
+        return; // ⚠️ 重要：直接結束，不讓 state.index + 1
+    }
+
+    // 2. 檢查劇本是否結束
     if (state.index >= scenario.length) {
         console.log("劇本已結束");
         return;
     }
 
-    const step = scenario[state.index];
+    // 3. 取得新的步驟
+    // 注意：這裡我們先用一個變數存起來，不要直接改原始資料
+    // 我們使用 {...obj} 來複製一份資料，避免污染原始劇本
+    let step = { ...scenario[state.index] }; 
+    
+    // 索引 +1 (指向下一步)
     state.index++;
 
-    console.log(`執行步驟 ${state.index}:`, step); 
+    // 4. 【文字切割邏輯】
+    // 如果這一步有文字，且文字長度超過限制
+    if (step.text && step.text.length > CHAR_LIMIT) {
+        
+        const fullText = step.text;
+        const chunks = [];
+
+        // 把長文字切成好幾塊
+        for (let i = 0; i < fullText.length; i += CHAR_LIMIT) {
+            chunks.push(fullText.substring(i, i + CHAR_LIMIT));
+        }
+
+        // 第一塊文字：馬上要顯示的，放回 step 物件
+        step.text = chunks.shift(); // 取出第一個
+
+        // 剩下的文字：存入佇列，等待之後的點擊
+        state.textQueue = chunks; 
+        
+        console.log(`文字太長，已切割成 ${chunks.length + 1} 段`);
+    }
+
+    // 執行渲染
+    console.log(`執行步驟 ${state.index}:`, step);
     render(step);
 }
 
