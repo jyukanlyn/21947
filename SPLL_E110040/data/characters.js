@@ -16,9 +16,9 @@ export const characters = {
   },
   // 👇 新增這裡：定義 Narrator (旁白) 的樣式
   "Narrator": {
-    // 您可以不設定 side，或是設為 "left" / "right" 來決定名字框位置
-    nameColor: "#333333",  // 例如：深灰色背景
-    textColor: "white",    // 例如：白色文字
-    sprites: {}            // 旁白通常沒有立繪，留空即可
+    // 您可以不設定 side (預設在左)，或是設為 "right"
+    nameColor: "#333333",  // 深灰色背景
+    textColor: "white",    // 白色文字
+    sprites: {}            // 旁白沒有立繪，留空即可
   }
 };
