@@ -13,7 +13,7 @@ export const characters = {
     sprites: {
       normal: "assets/char/947.png"
     }
-  }
+  },
   // 👇 新增這裡：定義 Narrator (旁白) 的樣式
   "Narrator": {
     // 您可以不設定 side，或是設為 "left" / "right" 來決定名字框位置
