@@ -3,10 +3,15 @@ import { characters } from "../data/characters.js";
 // 重要：必須引入 backgrounds 才能讀取圖片路徑
 import { state, backgrounds } from "./state.js";
 
-// 等待 HTML 載入完成後執行
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("引擎載入中..."); // Debug 訊息
-    initGame();
+// ❌ 舊的寫法 (可能會因為時機錯過而沒執行)
+// document.addEventListener("DOMContentLoaded", () => {
+//    console.log("引擎載入中..."); 
+//    initGame();
+// });
+
+// ✅ 新的寫法 (請改成這樣，直接呼叫)
+console.log("引擎啟動！");
+initGame();
 });
 
 // UI 元素快取 (對應 index.html 的 ID)
