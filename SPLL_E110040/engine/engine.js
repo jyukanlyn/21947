@@ -65,7 +65,7 @@ function initGame() {
 // --- 核心運作邏輯 ---
 
 // 設定：每頁最多字數
-const CHAR_LIMIT = 60; 
+const CHAR_LIMIT = 50; 
 
 function nextStep() {
     // 1. 【檢查佇列】優先處理還沒講完的話
