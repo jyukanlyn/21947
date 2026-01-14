@@ -47,13 +47,10 @@ window.onerror = function(message, source, lineno, colno, error) {
 </script>
 
 <script type="module">
-  // 嘗試引入引擎，並捕捉引入失敗的錯誤
   import("./engine/engine.js").catch(e => {
     alert("❌ 模組載入失敗！\n通常是 engine.js, state.js 或 characters.js 裡面寫錯字了。\n\n詳細錯誤：" + e);
   });
 </script>
 
-</body>
-</html>
 </body>
 </html>
