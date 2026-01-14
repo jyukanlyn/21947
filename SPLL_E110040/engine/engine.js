@@ -1,11 +1,8 @@
 import { scenario } from "../data/scenario.js";
 import { characters } from "../data/characters.js";
-// 重要：必須引入 backgrounds 才能讀取圖片路徑
 import { state, backgrounds } from "./state.js";
 
-// ⚠️ 修正順序：先定義 UI，最後再執行 initGame()
-
-// UI 元素快取 (對應 index.html 的 ID)
+// UI 元素快取
 const ui = {
     namePlate: document.getElementById("name-plate"),
     textBox: document.getElementById("dialogue-text"),
@@ -25,19 +22,15 @@ const ui = {
 // --- 初始化系統 ---
 function initGame() {
     if (!ui.gameScreen) {
-        console.error("錯誤：找不到 id='game-screen' 的元素！請檢查 index.html");
+        console.error("錯誤：找不到 id='game-screen' 的元素！");
         return;
     }
 
-    console.log("初始化完成，綁定點擊事件");
+    console.log("引擎啟動！初始化事件...");
 
-    // 綁定主畫面點擊 (下一步)
     ui.gameScreen.addEventListener("click", nextStep);
-    
-    // 初始化章節選單
     setupChapterMenu();
 
-    // 按鈕事件綁定 (紀錄 & 上一頁)
     if (ui.logBtn) ui.logBtn.addEventListener("click", (e) => {
         e.stopPropagation(); 
         showLog();
@@ -53,7 +46,7 @@ function initGame() {
         prevStep();
     });
 
-    // 初始渲染第一句
+    // 初始啟動
     if (state.index === 0 && scenario.length > 0) {
         nextStep(); 
     } else {
@@ -62,166 +55,174 @@ function initGame() {
 }
 
 // --- 核心運作邏輯 ---
-
-// 設定：每頁最多字數
+// 多少字換頁
 const CHAR_LIMIT = 40; 
 
 function nextStep() {
-    // 1. 【檢查佇列】優先處理還沒講完的話
+    let currentStepData = null;
+
+    // 1. 【優先檢查佇列】如果這句話還沒講完 (被切斷的對話)
     if (state.textQueue && state.textQueue.length > 0) {
+        // 取出下一段文字
         const nextChunk = state.textQueue.shift();
-        ui.textBox.textContent = nextChunk;
+        
+        // 為了顯示，我們需要構造一個臨時的 step 物件，沿用上一句的屬性(名字、表情等)
+        // 我們去抓 scenario 裡「目前正在讀的那一句」
+        // 注意：因為讀到新句時 index 已經 +1 了，所以這裡是 index - 1
+        const rawStep = scenario[state.index - 1];
+        
+        currentStepData = {
+            ...rawStep,
+            text: nextChunk // 替換成切分後的文字
+        };
+
         console.log("顯示剩餘文字:", nextChunk);
-        return; 
-    }
+    } 
+    // 2. 【讀取新的一句】佇列空了，讀劇本的下一行
+    else {
+        if (state.index >= scenario.length) {
+            console.log("劇本已結束");
+            return;
+        }
 
-    // 2. 檢查劇本是否結束
-    if (state.index >= scenario.length) {
-        console.log("劇本已結束");
-        return;
-    }
-
-    // --- 💾 3. 存入歷史紀錄 ---
-    if (state.index > 0) {
-        const currentStep = scenario[state.index - 1]; 
-        const lastLog = state.history[state.history.length - 1];
-        if (!lastLog || lastLog.index !== state.index - 1) {
+        // 取得原始劇本資料
+        let step = { ...scenario[state.index] };
+        
+        // --- 💾 存入 LOG (只有在讀新的一整句時才存) ---
+        if (state.index >= 0) {
              state.history.push({
-                index: state.index - 1,
-                speaker: currentStep.speaker || "",
-                text: currentStep.text || ""
+                index: state.index, // 記錄這是第幾句
+                speaker: step.speaker || "",
+                text: step.text || "" // 記錄完整文字
             });
         }
-    }
 
-    // 4. 取得新的步驟
-    let step = { ...scenario[state.index] }; 
-    state.index++;
-    state.textQueue = []; 
+        // 索引 +1 (指向下一句)
+        state.index++;
+        state.textQueue = []; // 清空舊佇列
 
-    // 5. 【✨ 聰明換頁邏輯】
-    if (step.text && step.text.length > CHAR_LIMIT) {
-        const fullText = step.text;
-        const chunks = [];
-        let remaining = fullText;
+        // --- ✨ 聰明切割邏輯 ---
+        if (step.text && step.text.length > CHAR_LIMIT) {
+            const fullText = step.text;
+            const chunks = [];
+            let remaining = fullText;
 
-        while (remaining.length > 0) {
-            if (remaining.length <= CHAR_LIMIT) {
-                chunks.push(remaining);
-                break;
-            }
-
-            let chunkAttempt = remaining.substring(0, CHAR_LIMIT);
-            const punctuation = ["。", "！", "？", "\n", "……", "⋯⋯", "」"];
-            let bestSplitIndex = -1;
-
-            for (let p of punctuation) {
-                const idx = chunkAttempt.lastIndexOf(p);
-                if (idx > bestSplitIndex) {
-                    bestSplitIndex = idx;
+            while (remaining.length > 0) {
+                if (remaining.length <= CHAR_LIMIT) {
+                    chunks.push(remaining);
+                    break;
                 }
+                let chunkAttempt = remaining.substring(0, CHAR_LIMIT);
+                const punctuation = ["。", "！", "？", "\n", "……", "⋯⋯", "」"];
+                let bestSplitIndex = -1;
+                for (let p of punctuation) {
+                    const idx = chunkAttempt.lastIndexOf(p);
+                    if (idx > bestSplitIndex) bestSplitIndex = idx;
+                }
+                let finalCutIndex = (bestSplitIndex !== -1) ? bestSplitIndex + 1 : CHAR_LIMIT;
+
+                chunks.push(remaining.substring(0, finalCutIndex));
+                remaining = remaining.substring(finalCutIndex);
             }
 
-            let finalCutIndex;
-            if (bestSplitIndex !== -1) {
-                finalCutIndex = bestSplitIndex + 1;
-            } else {
-                finalCutIndex = CHAR_LIMIT;
-            }
-
-            chunks.push(remaining.substring(0, finalCutIndex));
-            remaining = remaining.substring(finalCutIndex);
+            // 第一段馬上顯示，剩下的放進佇列
+            step.text = chunks.shift(); 
+            state.textQueue = chunks;   
+            console.log(`文字太長，已切割，剩餘段數: ${chunks.length}`);
         }
 
-        step.text = chunks.shift(); 
-        state.textQueue = chunks;   
-        console.log(`文字太長，已聰明切割成 ${chunks.length + 1} 段`);
+        currentStepData = step;
     }
 
-    // 執行渲染
-    console.log(`執行步驟 ${state.index}:`, step);
-    render(step);
+    // 3. 執行渲染
+    render(currentStepData);
+
+    // 4. ✨【關鍵修改】將這個畫面「存檔」到 backStack
+    // 我們存下：目前的 index、目前的佇列狀態、目前顯示的這包資料
+    state.backStack.push({
+        index: state.index,
+        // 這裡必須用 [...array] 拷貝一份，不然會被後面的操作影響
+        textQueue: [...state.textQueue], 
+        stepData: currentStepData
+    });
 }
 
-// ✨ 上一頁功能
+// ✨ 精準上一頁功能 (時光倒流)
 function prevStep() {
-    if (state.index <= 1) return; 
+    // 如果堆疊裡只有 1 個或更少，代表在第一頁，不能再退了
+    if (state.backStack.length <= 1) return; 
 
-    state.index -= 2;
-    state.history.pop();
-    state.textQueue = [];
+    // 1. 移除當前頁面 (Pop Current)
+    const currentSnapshot = state.backStack.pop();
 
-    nextStep();
+    // 2. 偷看前一個頁面 (Peek Previous)
+    const prevSnapshot = state.backStack[state.backStack.length - 1];
+
+    // 3. 恢復引擎狀態
+    state.index = prevSnapshot.index;
+    state.textQueue = [...prevSnapshot.textQueue]; // 恢復當時的佇列
+
+    // 4. 處理 LOG (如果退回的是「上一整句」，才刪除 Log)
+    // 判斷方式：如果 index 變了，代表跨越了句子
+    if (currentSnapshot.index !== prevSnapshot.index) {
+        state.history.pop();
+    }
+
+    // 5. 重新渲染前一頁的內容
+    console.log("返回上一頁:", prevSnapshot.stepData);
+    render(prevSnapshot.stepData);
 }
 
 function render(step) {
     if (!step) return;
 
-    // 1. 背景處理
-    if (step.bg) {
-        changeBackground(step.bg);
-    }
+    if (step.bg) changeBackground(step.bg);
 
-    // 2. 文字處理 (包含名字框邏輯)
     const speakerName = step.speaker || "";
     
     if (ui.namePlate) {
-        // 如果是 Narrator，直接隱藏名字框
         if (step.speaker === "Narrator") {
             ui.namePlate.style.display = "none";
         } else {
             ui.namePlate.style.display = ""; 
             ui.namePlate.textContent = speakerName;
             ui.namePlate.setAttribute("data-name", speakerName); 
+            ui.namePlate.classList.remove("right-side"); 
 
-            // 取得角色資料並設定顏色
             const charData = characters[step.speaker];
-
-            if (charData) {
-                if (charData.nameColor) {
-                    ui.namePlate.style.backgroundColor = charData.nameColor;
-                    ui.namePlate.style.color = charData.textColor || "white"; 
-                } else {
-                    ui.namePlate.style.backgroundColor = ""; 
-                    ui.namePlate.style.color = ""; 
-                }
+            if (charData && charData.nameColor) {
+                ui.namePlate.style.backgroundColor = charData.nameColor;
+                ui.namePlate.style.color = charData.textColor || "white"; 
             } else {
-                // 預設樣式
                 ui.namePlate.style.backgroundColor = ""; 
                 ui.namePlate.style.color = ""; 
             }
-
-            // ✨ 【修改 1】強制移除 right-side 樣式，確保名字框永遠在左邊
-            ui.namePlate.classList.remove("right-side"); 
         }
     }
 
-    // 文字框樣式 (Narrator 字體)
     if (ui.textBox) {
         ui.textBox.textContent = step.text || "";
     }
 
-    // 3. 立繪處理
+    if (ui.eventImage) {
+        if (step.special === "dice") {
+            ui.eventImage.src = "assets/effect/dice.png";
+            ui.eventImage.hidden = false; 
+        } else {
+            ui.eventImage.hidden = true;
+            ui.eventImage.src = ""; 
+        }
+    }
+
     updateCharacters(step);
 }
 
-// ✨ 顯示歷史紀錄視窗
 function showLog() {
     if (!ui.logContent) return;
-    const list = ui.logContent;
-    list.innerHTML = ""; 
+    ui.logContent.innerHTML = ""; 
 
-    const currentStep = scenario[state.index - 1];
-    const displayHistory = [...state.history]; 
-    
-    if (currentStep) {
-        displayHistory.push({
-            speaker: currentStep.speaker || "",
-            text: currentStep.text || ""
-        });
-    }
-
-    displayHistory.forEach(log => {
+    // 顯示所有歷史紀錄
+    state.history.forEach(log => {
         if (!log.text) return;
         const div = document.createElement("div");
         div.className = "log-entry";
@@ -238,86 +239,56 @@ function showLog() {
         textSpan.textContent = log.text;
         div.appendChild(textSpan);
 
-        list.appendChild(div);
+        ui.logContent.appendChild(div);
     });
 
     ui.logWindow.hidden = false;
     setTimeout(() => {
-        list.scrollTop = list.scrollHeight;
+        ui.logContent.scrollTop = ui.logContent.scrollHeight;
     }, 10);
 }
 
 function changeBackground(bgID) {
     const bgPath = backgrounds[bgID];
-
     if (bgPath) {
         ui.gameScreen.style.backgroundImage = `url('${bgPath}')`;
         ui.gameScreen.style.backgroundSize = "cover";     
         ui.gameScreen.style.backgroundPosition = "center"; 
-    } else {
-        console.warn(`警告：在 state.js 中找不到背景代號 '${bgID}'`);
     }
 }
 
-// ✨ 【修改 2】重寫立繪邏輯：強制只顯示說話者在左邊
 function updateCharacters(step) {
-    // 1. 強制隱藏右邊立繪 (因為我們只用左邊)
+    // 隱藏右邊
     if (ui.avatarRight) {
         ui.avatarRight.style.display = "none";
         ui.avatarRight.classList.remove("active");
     }
 
-    // 2. 先把左邊立繪也隱藏並重置 (預設為空)
-    // 這樣如果是 Narrator 或沒立繪的人說話，畫面上就不會有人
+    // 重置左邊
     if (ui.avatarLeft) {
         ui.avatarLeft.src = "";
-        ui.avatarLeft.style.display = "none"; // 先藏起來
+        ui.avatarLeft.style.display = "none";
         ui.avatarLeft.classList.remove("active");
-        ui.avatarLeft.className = "avatar left"; // 重置 class
+        ui.avatarLeft.className = "avatar left"; 
     }
 
-    // 3. 如果是旁白，做到這裡就結束 (畫面上無人)
-    if (step.speaker === "Narrator") {
-        return;
-    }
+    if (step.speaker === "Narrator") return;
 
-    // 4. 檢查該角色是否有立繪
     const char = characters[step.speaker];
-    
-    // 如果角色資料不存在，或沒有 sprites 設定，也結束
     if (!char || !char.sprites) return;
 
     const emotion = step.emotion || "normal";
-    
-    // 5. 如果有對應表情的圖片，就顯示在【左邊】
-    if (char.sprites[emotion]) {
-        if (ui.avatarLeft) {
-            ui.avatarLeft.src = char.sprites[emotion];
-            ui.avatarLeft.style.display = "block"; // 顯示出來
-            
-            // 加入 active 讓它變亮/出現
-            ui.avatarLeft.classList.add("active");
-            ui.avatarLeft.classList.remove("inactive");
-        }
+    if (char.sprites[emotion] && ui.avatarLeft) {
+        ui.avatarLeft.src = char.sprites[emotion];
+        ui.avatarLeft.style.display = "block";
+        ui.avatarLeft.classList.add("active");
+        ui.avatarLeft.classList.remove("inactive");
     }
 }
 
-// --- 輔助功能 ---
-
-function resetAvatars() {
-    if (ui.avatarLeft) ui.avatarLeft.className = "avatar left";
-    if (ui.avatarRight) ui.avatarRight.className = "avatar right";
-}
-
-// dimOther 和 dimAll 在新邏輯下其實用不到了，但為了避免報錯先留著
-function dimOther(activeSide) {}
-function dimAll() {}
-
-// --- 章節選單邏輯 ---
-
+// 輔助函式：章節選單
 function setupChapterMenu() {
     if (!ui.chapterBtn || !ui.chapterMenu) return;
-
     const chapters = scenario
         .map((step, index) => step.chapter ? { title: step.chapter, index } : null)
         .filter(Boolean);
@@ -334,31 +305,28 @@ function setupChapterMenu() {
 
 function openChapterMenu(chapters) {
     ui.chapterMenu.innerHTML = "<h2>章節選擇</h2>";
-
     chapters.forEach(ch => {
         const div = document.createElement("div");
         div.className = "chapter-item";
         div.textContent = ch.title;
         div.style.cursor = "pointer"; 
         div.style.padding = "10px";   
-        
         div.onclick = (e) => {
             e.stopPropagation();
             jumpToChapter(ch.index);
         };
-        
         ui.chapterMenu.appendChild(div);
     });
-
     ui.chapterMenu.hidden = false;
 }
 
 function jumpToChapter(index) {
     state.index = index;
+    state.textQueue = [];
+    state.backStack = []; // 跳章節時清空返回堆疊，避免邏輯混亂
     ui.chapterMenu.hidden = true;
     nextStep();
 }
 
-// ✅ 這裡才是最後一行：啟動遊戲
 console.log("引擎啟動！");
 initGame();
