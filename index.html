@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maple & Indigo - CP Showcase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 配色變量定義 --- */
+        :root {
+            /* 楓葉色系：熱情、燃燒、秋日 */
+            --maple-red: #D64045; 
+            --maple-orange: #E67F50;
+            --maple-gradient: linear-gradient(45deg, #D64045, #E67F50);
+            
+            /* 靛紫色系：深沈、夜晚、高貴 */
+            --indigo-dark: #1A1626;
+            --indigo-mid: #2E2545;
+            --indigo-light: #4D4175;
+            
+            /* 功能色 */
+            --text-main: #F0F0F0;
+            --text-sub: #B8B0CC;
+            --glass-bg: rgba(30, 25, 50, 0.65); /* 深色半透明背景 */
+            --glass-border: rgba(214, 64, 69, 0.3); /* 帶有紅色的邊框 */
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            font-family: 'Lato', sans-serif;
+            background-color: var(--indigo-dark);
+            /* 背景漸變：模擬夜色 */
+            background-image: radial-gradient(circle at 80% 20%, var(--indigo-light) 0%, var(--indigo-dark) 60%);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        /* --- 深色毛玻璃卡片 --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            /* 陰影帶有一點點楓紅色的光暈 */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 
+                        0 0 15px rgba(214, 64, 69, 0.1); 
+            padding: 50px 40px;
+            margin-bottom: 40px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--maple-orange);
+        }
+
+        /* --- 標題設計 --- */
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.8rem;
+            margin: 0 0 15px 0;
+            /* 文字漸變效果 */
+            background: var(--maple-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .hero-subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--text-sub);
+            font-style: italic;
+            border-top: 1px solid var(--indigo-light);
+            border-bottom: 1px solid var(--indigo-light);
+            display: inline-block;
+            padding: 10px 30px;
+            margin-bottom: 20px;
+        }
+
+        /* --- 裝飾性元素 (楓葉) --- */
+        .deco-leaf {
+            font-size: 1.5rem;
+            color: var(--maple-red);
+            margin: 10px 0;
+            opacity: 0.8;
+        }
+
+        /* --- 角色區域 --- */
+        .cp-profile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .character {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 20px auto;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%; /* 圓形頭像，改成 12px 可變圓角矩形 */
+            object-fit: cover;
+            border: 3px solid var(--indigo-mid);
+            /* 頭像發光效果 */
+            box-shadow: 0 0 20px rgba(214, 64, 69, 0.4);
+            transition: all 0.4s ease;
+        }
+
+        .avatar:hover {
+            border-color: var(--maple-orange);
+            transform: scale(1.03);
+        }
+
+        .char-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--maple-red);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .char-tag {
+            font-size: 0.85rem;
+            background: rgba(214, 64, 69, 0.2);
+            color: var(--maple-orange);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .char-desc {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            padding: 0 10px;
+        }
+
+        /* --- 中間的連接符 --- */
+        .cross-sign {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            background: var(--maple-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.7;
+        }
+
+        /* --- 故事區域 --- */
+        .story-content {
+            text-align: left;
+            font-size: 1.1rem;
+            line-height: 2.2;
+            color: var(--text-main);
+        }
+        
+        .story-content::first-letter {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            float: left;
+            margin-right: 10px;
+            line-height: 1;
+            color: var(--maple-red);
+        }
+
+        /* --- 畫廊/按鈕網格 --- */
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .link-card {
+            background: rgba(26, 22, 38, 0.6);
+            border: 1px solid var(--indigo-light);
+            padding: 30px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--maple-red);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .link-card:hover {
+            background: var(--indigo-mid);
+            transform: translateY(-3px);
+            border-color: var(--maple-red);
+        }
+
+        .link-card:hover::before {
+            opacity: 1;
+        }
+
+        .link-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--maple-orange);
+            margin-bottom: 10px;
+        }
+
+        .link-desc {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+        }
+
+        /* --- 頁腳 --- */
+        footer {
+            margin-top: 60px;
+            font-size: 0.8rem;
+            color: var(--indigo-light);
+            letter-spacing: 1px;
+        }
+
+        /* --- 手機適配 --- */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .cp-profile { flex-direction: column; gap: 30px; }
+            .cross-sign { transform: rotate(90deg); margin: 10px 0; }
+            .glass-card { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="glass-card">
+            <div class="deco-leaf">🍁</div>
+            <h1 class="hero-title">Red & Violet</h1>
+            <p class="hero-subtitle">Between the falling leaves and the deep night.</p>
+        </header>
+
+        <section class="glass-card">
+            <div class="cp-profile">
+                <div class="character">
+                    <div class="avatar-container">
+                        <img src="https://via.placeholder.com/200/d64045/ffffff?text=A" alt="Character A" class="avatar">
+                    </div>
+                    <div class="char-name">Character A</div>
+                    <span class="char-tag">Passion / Maple</span>
+                    <p class="char-desc">
+                        如晚秋楓紅般熾熱的角色。<br>
+                        這裡可以描述他的性格，或者他在這段關係中的主動地位。
+                    </p>
+                </div>
+
+                <div class="cross-sign">✕</div>
+
+                <div class="character">
+                    <div class="avatar-container">
+                        <img src="https://via.placeholder.com/200/2e2545/ffffff?text=B" alt="Character B" class="avatar">
+                    </div>
+                    <div class="char-name">Character B</div>
+                    <span class="char-tag">Mystery / Indigo</span>
+                    <p class="char-desc">
+                        如深夜長空般深沈的角色。<br>
+                        這裡可以描述他的沈穩、冷靜，或者是被對方點燃的一面。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card">
+            <h2 style="font-family:'Playfair Display', serif; color: var(--maple-orange); margin-bottom: 30px;">Prologue</h2>
+            <div class="story-content">
+                <p>
+                    這是放置故事簡介的區域。在這個配色下，文字呈現出一種電影字幕般的質感。<br>
+                    楓葉的紅色象徵著命運的紅線，而靛紫色則是包容一切的背景。你可以在這裡寫下他們的相遇、衝突或是約定。
+                </p>
+                <p>
+                    "Even if the night is dark, the maple leaves will guide you home."
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <div class="links-grid">
+                <div class="link-card" onclick="alert('跳轉到小說列表')">
+                    <div class="link-title">Novels</div>
+                    <div class="link-desc">閱讀所有關於他們的故事</div>
+                </div>
+                <div class="link-card" onclick="alert('跳轉到插畫列表')">
+                    <div class="link-title">Gallery</div>
+                    <div class="link-desc">插畫與視覺圖集</div>
+                </div>
+                <div class="link-card" onclick="alert('跳轉到設定集')">
+                    <div class="link-title">Profile</div>
+                    <div class="link-desc">詳細的角色設定與世界觀</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            DESIGNED FOR THE ETERNAL AUTUMN
+        </footer>
+    </div>
+
+</body>
+</html>
