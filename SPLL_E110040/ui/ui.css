@@ -108,12 +108,20 @@ html, body {
   position: absolute;
   top: -28px;
   left: 20px;
-  background: #ffcc00;
+  background: #ffcc00;  /* 黃色背景 */
   color: black;
   padding: 4px 16px;
   border-radius: 5px;
   font-weight: bold;
 }
+
+/* 👇 請新增這一整段 👇 */
+/* 這段的意思是：如果 name-plate 裡面「沒有文字」，就把它隱藏起來 */
+#name-plate:empty {
+  display: none;
+}
+
+
 
 #dialogue-text {
   white-space: pre-wrap;
