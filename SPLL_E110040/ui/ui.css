@@ -121,29 +121,6 @@ html, body {
   display: none;
 }
 
-#name-plate:二羽 一葉 {
-  position: absolute;
-  top: -28px;
-  left: 20px;
-  background: #FF5809;  /* 紅色背景 */
-  color: black;
-  padding: 4px 16px;
-  border-radius: 5px;
-  font-weight: bold;
-}
-
-#name-plate:久世　傾 {
-  position: absolute;
-  top: -28px;
-  left: 20px;
-  background: #E6CAFF;  /* 紫色背景 */
-  color: black;
-  padding: 4px 16px;
-  border-radius: 5px;
-  font-weight: bold;
-}
-
-
 
 #dialogue-text {
   white-space: pre-wrap;
