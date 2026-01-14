@@ -1,6 +1,6 @@
 export const scenario = [
   {
-    bg: "bedroom",
+    bg: "room",
     transition: "fade"
   },
   {
