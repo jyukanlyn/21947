@@ -28,9 +28,10 @@
   </div>
 
   <div id="dialogue-box">
-    <div id="back-btn">◀</div>
+    <img id="back-btn" src="assets/ui/back.png" alt="返回上一頁">
     
     <div id="name-plate"></div>
+    
     <div id="dialogue-text"></div>
   </div>
 
@@ -47,8 +48,9 @@ window.onerror = function(message, source, lineno, colno, error) {
 </script>
 
 <script type="module">
+  // 嘗試載入引擎，如果路徑錯誤會報錯
   import("./engine/engine.js").catch(e => {
-    alert("❌ 模組載入失敗！\n通常是 engine.js, state.js 或 characters.js 裡面寫錯字了。\n\n詳細錯誤：" + e);
+    alert("❌ 模組載入失敗！\n請檢查 engine.js, state.js 或 characters.js 的路徑或語法。\n\n詳細錯誤：" + e);
   });
 </script>
 
