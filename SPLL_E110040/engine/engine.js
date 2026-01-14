@@ -19,6 +19,8 @@ const ui = {
     logContent: document.getElementById("log-content"),
     closeLogBtn: document.getElementById("close-log-btn"),
     backBtn: document.getElementById("back-btn"),
+    // 如果您有加骰子圖片功能，記得確認這裡有沒有 eventImage
+    eventImage: document.getElementById("event-image"), 
 };
 
 // --- 初始化系統 ---
@@ -152,6 +154,7 @@ function prevStep() {
 
     nextStep();
 }
+
 function render(step) {
     if (!step) return;
 
@@ -160,51 +163,66 @@ function render(step) {
         changeBackground(step.bg);
     }
 
-    // 2. 文字處理
+    // 2. 文字處理 (包含名字框邏輯)
     const speakerName = step.speaker || "";
     
     if (ui.namePlate) {
-        ui.namePlate.textContent = speakerName;
-        ui.namePlate.setAttribute("data-name", speakerName); 
+        // 👇👇👇 【關鍵修改】如果是 Narrator，直接隱藏名字框 👇👇👇
+        if (step.speaker === "Narrator") {
+            ui.namePlate.style.display = "none";
+        } else {
+            // 如果不是 Narrator，要記得把 display 改回來 (設為空字串會回復 CSS 預設值)
+            ui.namePlate.style.display = ""; 
+            ui.namePlate.textContent = speakerName;
+            ui.namePlate.setAttribute("data-name", speakerName); 
 
-        // 取得角色資料
-        const charData = characters[step.speaker];
+            // 取得角色資料並設定顏色
+            const charData = characters[step.speaker];
 
-        if (charData) {
-            // 顏色設定
-            if (charData.nameColor) {
-                ui.namePlate.style.backgroundColor = charData.nameColor;
-                ui.namePlate.style.color = charData.textColor || "white"; 
+            if (charData) {
+                if (charData.nameColor) {
+                    ui.namePlate.style.backgroundColor = charData.nameColor;
+                    ui.namePlate.style.color = charData.textColor || "white"; 
+                } else {
+                    ui.namePlate.style.backgroundColor = ""; 
+                    ui.namePlate.style.color = ""; 
+                }
+
+                if (charData.side === "right") {
+                    ui.namePlate.classList.add("right-side");
+                } else {
+                    ui.namePlate.classList.remove("right-side");
+                }
             } else {
+                // 預設樣式
                 ui.namePlate.style.backgroundColor = ""; 
                 ui.namePlate.style.color = ""; 
+                ui.namePlate.classList.remove("right-side"); 
             }
-
-            // 位置設定
-            if (charData.side === "right") {
-                ui.namePlate.classList.add("right-side");
-            } else {
-                ui.namePlate.classList.remove("right-side");
-            }
-
-        } else {
-            // 還原預設值
-            ui.namePlate.style.backgroundColor = ""; 
-            ui.namePlate.style.color = ""; 
-            ui.namePlate.classList.remove("right-side"); 
         }
+        // 👆👆👆 【修改結束】 👆👆👆
     }
 
-    // --- ✨ 修改這裡：文字框內容與樣式切換 ---
+    // 文字框樣式 (Narrator 字體)
     if (ui.textBox) {
         ui.textBox.textContent = step.text || "";
 
-        // 判斷：如果是 Narrator，就加上特殊字體樣式
         if (step.speaker === "Narrator") {
             ui.textBox.classList.add("narrator-style");
         } else {
-            // 如果不是旁白（是普通角色），記得要把樣式移除，變回普通字體
             ui.textBox.classList.remove("narrator-style");
+        }
+    }
+
+    // --- ✨ 特殊事件圖片 (骰子) ---
+    // (如果您上一部有加骰子功能，這裡保留給您)
+    if (ui.eventImage) {
+        if (step.special === "dice") {
+            ui.eventImage.src = "assets/effect/dice.png";
+            ui.eventImage.hidden = false; 
+        } else {
+            ui.eventImage.hidden = true;
+            ui.eventImage.src = ""; 
         }
     }
 
