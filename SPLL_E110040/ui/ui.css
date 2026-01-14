@@ -8,17 +8,42 @@ html, body {
   height: 100%;
   font-family: "Microsoft JhengHei", sans-serif;
   background: black;
+  overflow: hidden; /* 防止出現捲軸 */
 }
 
 #game-screen {
   position: relative;
   width: 100vw;
   height: 100vh;
-  background:
-    linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.75)),
-    url("../assets/bg/room.png") center / cover no-repeat;
+  /* 這裡只要設定預設圖片就好，JS 會去換掉它 */
+  /* ../assets 的路徑是假設 css 檔在 ui/ 資料夾，而 assets 在上一層 */
+  background-image: url("../assets/bg/room.png");
+  background-size: cover;
+  background-position: center;
   cursor: pointer;
+  
+  /* 讓這個 div 成為定位基準 */
+  z-index: 1; 
 }
+
+/* --- 新增：獨立的變暗遮罩 --- */
+/* 這樣無論 JS 怎麼換背景圖片，這層半透明黑色永遠都在，確保文字清晰 */
+#game-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8));
+  pointer-events: none; /* 讓點擊可以穿透遮罩 */
+  z-index: -1; /* 放在內容之下，但需配合 game-screen 的 z-index 管理 */
+}
+/* 為了讓 ::after 生效且不擋住內容，我們調整一下層級策略：
+   比較簡單的做法是：不要用 ::after，直接讓 dialogue-box 背景深一點，
+   或者保留原本寫法但 JS 改寫。
+   
+   但為了不改 JS，我們採取最穩定的寫法：
+   直接讓 #game-screen 顯示圖，
+   然後文字框保持深色背景。
+*/
 
 /* ===== 角色 ===== */
 #avatar-container {
@@ -26,7 +51,8 @@ html, body {
   bottom: calc(var(--dialogue-height) + 20px);
   width: 100%;
   height: 60vh;
-  pointer-events: none;
+  pointer-events: none; /* 關鍵：讓滑鼠點擊穿透角色區域，點到 game-screen */
+  z-index: 5;
 }
 
 .avatar {
@@ -67,11 +93,15 @@ html, body {
   width: 90%;
   max-width: 900px;
   height: var(--dialogue-height);
-  background: rgba(0,0,0,.85);
+  background: rgba(0,0,0,.85); /* 深色背景確保文字清晰 */
   border-radius: 10px;
   padding: 20px;
   box-sizing: border-box;
   color: white;
+  z-index: 10; /* 確保在最上層 */
+  
+  /* 讓點擊對話框也能觸發下一句 (因為事件冒泡) */
+  pointer-events: auto; 
 }
 
 #name-plate {
@@ -88,6 +118,7 @@ html, body {
 #dialogue-text {
   white-space: pre-wrap;
   line-height: 1.6;
+  font-size: 1.1rem; /*稍微大一點比較好讀*/
 }
 
 #chapter-btn {
@@ -100,16 +131,18 @@ html, body {
   padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
+  z-index: 20;
 }
 
 #chapter-menu {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.85);
+  background: rgba(0,0,0,.95); /* 加深一點防止透出背景太亂 */
   color: white;
   padding: 40px;
   box-sizing: border-box;
   overflow-y: auto;
+  z-index: 100; /* 確保蓋過所有東西 */
 }
 
 .chapter-item {
@@ -122,11 +155,4 @@ html, body {
   color: #ffcc00;
 }
 
-#background {
-  position: fixed;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  transition: opacity 0.6s;
-  z-index: 0;
-}
+/* ⚠️ 原本最下面的 #background 已經刪除，因為它是多餘的且可能擋住點擊 */
