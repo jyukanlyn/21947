@@ -1,3 +1,12 @@
+/* ui/ui.css */
+
+/* 1. 註冊新字體 */
+@font-face {
+  font-family: "MyNarratorFont";  /* 幫它取個名字，您可以自己改 */
+  /* 👇 注意路徑：跟圖片一樣，要用 ../ 跳出 ui 資料夾 */
+  src: url("../assets/fonts/KozMinPr6N-Bold.otf"); 
+}
+
 :root {
   --dialogue-height: 180px;
 }
@@ -252,4 +261,15 @@ html, body {
   display: none !important;
   pointer-events: none !important;
   visibility: hidden !important;
+}
+
+/* --- ✨ 新增：旁白專用的文字樣式 --- */
+.narrator-style {
+  /* 1. 字體改為「明體/襯線體」(像小說一樣的字體) */
+  font-family: "MyNarratorFont", serif;
+  
+  font-size: 1.1rem;    /* 如果新字體太小，可以在這裡調整 */
+  color: #dddddd; 
+  letter-spacing: 1px;
+
 }
