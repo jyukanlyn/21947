@@ -246,3 +246,10 @@ html, body {
 .chapter-item:hover {
   color: #ffcc00;
 }
+
+/* 👇 強制隱藏 hidden 屬性的元素，防止它們擋住點擊 */
+[hidden] {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
