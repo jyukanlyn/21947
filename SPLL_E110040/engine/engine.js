@@ -117,17 +117,33 @@ function render(step) {
         // --- 動態改變名字框顏色 ---
         const charData = characters[step.speaker];
 
-        // 判斷：如果角色存在，且有設定 nameColor
+        // A. 顏色設定 判斷：如果角色存在，且有設定 nameColor
         if (charData && charData.nameColor) {
             ui.namePlate.style.backgroundColor = charData.nameColor;
             
             // 👇 優先使用設定檔裡的 textColor，如果沒設定才用白色
             ui.namePlate.style.color = charData.textColor || "white"; 
+            } else {
+                ui.namePlate.style.backgroundColor = ""; 
+                ui.namePlate.style.color = ""; 
+            }
+
+            // --- B. 位置設定 (✨ 新增這裡！) ---
+            // 判斷角色在左邊還是右邊
+            if (charData.side === "right") {
+                // 如果是右邊的角色，加上 .right-side
+                ui.namePlate.classList.add("right-side");
+            } else {
+                // 如果是左邊的角色 (或沒寫)，移除 .right-side
+                ui.namePlate.classList.remove("right-side");
+            }
+
             
         } else {
             // 如果沒設定，或者此時是旁白，回復成 CSS 的預設值
             ui.namePlate.style.backgroundColor = ""; 
             ui.namePlate.style.color = ""; 
+            ui.namePlate.classList.remove("right-side"); // 還原位置到左邊
         }
     }
 
