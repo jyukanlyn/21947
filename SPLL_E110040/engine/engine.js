@@ -117,7 +117,7 @@ function nextStep() {
             let chunkAttempt = remaining.substring(0, CHAR_LIMIT);
             
             // 定義我們要找的標點符號 (句號、驚嘆號、問號、換行、刪節號)
-            const punctuation = ["。", "！", "？", "\n", "…", "」"];
+            const punctuation = ["。", "！", "？", "\n", "……","⋯⋯", "」"];
             
             let bestSplitIndex = -1;
 
