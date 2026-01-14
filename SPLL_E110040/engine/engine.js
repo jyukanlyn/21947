@@ -3,13 +3,7 @@ import { characters } from "../data/characters.js";
 // 重要：必須引入 backgrounds 才能讀取圖片路徑
 import { state, backgrounds } from "./state.js";
 
-// ❌ 舊的寫法 (可能會因為時機錯過而沒執行)
-// document.addEventListener("DOMContentLoaded", () => {
-//    console.log("引擎載入中..."); 
-//    initGame();
-// });
-
-// ✅ 新的寫法 (請改成這樣，直接呼叫)
+// ✅ 新的寫法：直接呼叫初始化，不等待 DOMContentLoaded (因為 script type="module" 預設就是延遲執行的)
 console.log("引擎啟動！");
 initGame();
 
@@ -39,10 +33,13 @@ function initGame() {
 
     console.log("初始化完成，綁定點擊事件");
 
+    // 綁定主畫面點擊 (下一步)
     ui.gameScreen.addEventListener("click", nextStep);
+    
+    // 初始化章節選單
     setupChapterMenu();
 
-    // 👇 新增按鈕事件綁定 (紀錄 & 上一頁)
+    // 👇 按鈕事件綁定 (紀錄 & 上一頁)
     if (ui.logBtn) ui.logBtn.addEventListener("click", (e) => {
         e.stopPropagation(); 
         showLog();
@@ -58,7 +55,7 @@ function initGame() {
         prevStep();
     });
 
-    // 初始渲染
+    // 初始渲染第一句
     if (state.index === 0 && scenario.length > 0) {
         nextStep(); 
     } else {
@@ -118,10 +115,9 @@ function nextStep() {
             }
 
             // --- 尋找最佳切割點 ---
-            // 先取出前 CHAR_LIMIT 個字
             let chunkAttempt = remaining.substring(0, CHAR_LIMIT);
             
-            // 定義我們要找的標點符號 (句號、驚嘆號、問號、換行、刪節號)
+            // 定義我們要找的標點符號
             const punctuation = ["。", "！", "？", "\n", "……", "⋯⋯", "」"];
             
             let bestSplitIndex = -1;
@@ -137,16 +133,15 @@ function nextStep() {
             let finalCutIndex;
             
             if (bestSplitIndex !== -1) {
-                // 找到了標點符號！切割點設在標點符號的「後面」(idx + 1)
+                // 找到了標點符號！切割點設在標點符號的「後面」
                 finalCutIndex = bestSplitIndex + 1;
             } else {
-                // 沒找到標點符號 (這句話太長了)，只好硬切
+                // 沒找到標點符號，只好硬切
                 finalCutIndex = CHAR_LIMIT;
             }
 
             // 切割並放入佇列
             chunks.push(remaining.substring(0, finalCutIndex));
-            // 更新剩下的文字
             remaining = remaining.substring(finalCutIndex);
         }
 
@@ -164,10 +159,10 @@ function nextStep() {
 function prevStep() {
     if (state.index <= 1) return; 
 
-    // 索引倒退 2 格 (因為執行 nextStep 會 +1，所以要扣 2 才能回到上一句)
+    // 索引倒退 2 格
     state.index -= 2;
 
-    // 刪除最後一筆紀錄 (時光倒流)
+    // 刪除最後一筆紀錄
     state.history.pop();
     
     // 清空未讀佇列
@@ -185,7 +180,6 @@ function render(step) {
     }
 
     // 2. 文字處理
-    // ✅ 新寫法：直接使用劇本裡的名字 (如果是 undefined 就變空字串)
     const speakerName = step.speaker || "";
     
     if (ui.namePlate) {
@@ -196,7 +190,6 @@ function render(step) {
         const charData = characters[step.speaker];
 
         if (charData) {
-            
             // --- A. 顏色設定 ---
             if (charData.nameColor) {
                 ui.namePlate.style.backgroundColor = charData.nameColor;
@@ -214,7 +207,7 @@ function render(step) {
             }
 
         } else {
-            // 如果沒設定角色資料 (例如完全沒寫 speaker)，還原預設值
+            // 還原預設值
             ui.namePlate.style.backgroundColor = ""; 
             ui.namePlate.style.color = ""; 
             ui.namePlate.classList.remove("right-side"); 
@@ -249,8 +242,6 @@ function showLog() {
         const div = document.createElement("div");
         div.className = "log-entry";
         
-        // 如果不是旁白，才顯示名字
-        // (註：如果您希望旁白也顯示名字，可以把 && log.speaker !== "Narrator" 拿掉)
         if (log.speaker && log.speaker !== "Narrator") {
             const nameSpan = document.createElement("span");
             nameSpan.className = "log-name";
