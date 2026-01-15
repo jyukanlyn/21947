@@ -4,15 +4,18 @@
   --dialogue-height: 180px;
 }
 
+/* 全域設定 */
 html, body {
   margin: 0;
+  padding: 0;
   width: 100%;
   height: 100%;
-  font-family: "Microsoft JhengHei", sans-serif;
+  font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
   background: black;
-  overflow: hidden; /* 防止出現網頁捲軸 */
+  overflow: hidden; /* 禁止網頁滾動 */
 }
 
+/* 遊戲主畫面容器 */
 #game-screen {
   position: relative;
   width: 100vw;
@@ -24,7 +27,7 @@ html, body {
   z-index: 1; 
 }
 
-/* --- 獨立的變暗遮罩 --- */
+/* 背景變暗遮罩 */
 #game-screen::after {
   content: "";
   position: absolute;
@@ -51,7 +54,7 @@ html, body {
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* ===== 角色 ===== */
+/* ===== 角色立繪 ===== */
 #avatar-container {
   position: absolute;
   bottom: calc(var(--dialogue-height) + 20px);
@@ -64,28 +67,23 @@ html, body {
 .avatar {
   position: absolute;
   bottom: 0;
-  max-height: 25vh;
+  max-height: 80vh; /* 調整立繪高度 */
   opacity: 0;
   transition: opacity .6s ease, filter .4s ease;
   animation: breathe 4s ease-in-out infinite;
 }
 
-.avatar.left { 
-    left: 10%; 
-}
-.avatar.right { 
-    right: 10%; 
-}
+.avatar.left { left: 10%; }
+.avatar.right { right: 10%; }
 .avatar.active { opacity: 1; filter: brightness(1); }
 .avatar.inactive { opacity: .45; filter: brightness(.75); }
 
 @keyframes breathe {
-  0% { transform: translateY(0); }
+  0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
-  100% { transform: translateY(0); }
 }
 
-/* ===== 對話框 ===== */
+/* ===== 對話框核心 ===== */
 #dialogue-box {
   position: absolute;
   bottom: 20px;
@@ -96,74 +94,45 @@ html, body {
   height: var(--dialogue-height);
   background: rgba(0,0,0,.85);
   border-radius: 10px;
-  
-  /* 左邊 padding 加大，避免壓到 Back 按鈕 */
-  padding: 20px 20px 20px 60px; 
-  
   box-sizing: border-box;
-  color: white;
   z-index: 10;
   pointer-events: auto; 
+  overflow: visible; /* 改為 visible 讓名字框可以超出邊界 */
 }
 
-/* 名字框 */
+/* 名字標籤 */
 #name-plate {
   position: absolute;
-  top: -28px;
-  left: 20px;  
-  right: auto; 
+  top: -15px;
+  left: 30px;  
   background: #ffcc00;
   color: black;
   padding: 4px 16px;
   border-radius: 5px;
   font-weight: bold;
+  z-index: 21;
   transition: all 0.3s ease;
 }
-
-#name-plate.right-side { left: auto; right: 20px; }
+#name-plate.right-side { left: auto; right: 30px; }
 #name-plate:empty { display: none; }
 
-/* 對話內容 */
+/* 對話文字區域 */
 #dialogue-text {
-  position: absolute;
-  top: 0; 
-  /* ⚠️ 修正：原本寫 left: 10%，這會導致文字框往右偏移並超出黑框，必須改回 0 */
-  left: 0;
-  
-  /* 高度設定 */
+  position: relative;
   width: 100%; 
-  height: calc(100% - 40px);
-  
+  height: 100%;
   color: white;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   line-height: 1.6;
   white-space: pre-wrap;
   
-  /* 留白設定 */
-  padding-top: 40px; 
-  padding-left: 60px;
-  padding-right: 60px;
-  padding-bottom: 50px;
+  /* 留白：確保不被 Back 鍵遮擋，上方留給名字框 */
+  padding: 35px 40px 20px 65px; 
   box-sizing: border-box;
-  
-  /* 增加捲動功能 */
-  overflow-y: auto;
+  overflow: hidden; /* 防止文字過多溢出黑框 */
 }
 
-/* ===== 按鈕區 ===== */
-#chapter-btn {
-  position: absolute;
-  top: 20px; right: 20px;
-  background: rgba(255,255,255,.15);
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  z-index: 20; 
-}
-#chapter-btn:hover { background: rgba(255,255,255,.3); }
-
+/* ===== 控制按鈕 ===== */
 #log-btn {
   position: absolute;
   top: 20px; left: 20px;
@@ -175,9 +144,20 @@ html, body {
   cursor: pointer;
   border-radius: 4px;
 }
-#log-btn:hover { background: rgba(0,0,0,0.8); border-color: white; }
 
-/* 👇👇👇 【修改區】Back 按鈕 (換成圖片版樣式) 👇👇👇 */
+#chapter-btn {
+  position: absolute;
+  top: 20px; right: 20px;
+  z-index: 100;
+  background: rgba(255,255,255,.15);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Back 按鈕 (對話框內左側圖片) */
 #back-btn {
   position: absolute;
   left: 15px;         
@@ -185,106 +165,50 @@ html, body {
   transform: translateY(-50%);
   z-index: 20;
   cursor: pointer;
-  
-  /* 設定圖片寬度，可自行調整 */
-  width: 30px; 
+  width: 35px; 
   height: auto;
-  
-  /* 預設半透明 */
   opacity: 0.6;
-  
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: all 0.3s ease;
   user-select: none;  
-  -webkit-user-drag: none; /* 防止圖片被拖曳 */
+  -webkit-user-drag: none;
 }
+#back-btn:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
+#back-btn:active { transform: translateY(-50%) scale(0.9); }
 
-#back-btn:hover {
-  opacity: 1; /* 滑鼠移上去變亮 */
-  transform: translateY(-50%) scale(1.1); /* 稍微放大 */
-}
-
-#back-btn:active {
-  transform: translateY(-50%) scale(0.95); /* 按下去縮小 */
-}
-/* 👆👆👆 【修改結束】 👆👆👆 */
-
-/* ===== 章節選單 (全螢幕) ===== */
-#chapter-menu {
+/* ===== Log 視窗 & 章節選單 (全螢幕層級) ===== */
+#log-window, #chapter-menu {
   position: absolute;
-  inset: 0;
+  inset: 0; /* 滿版 */
   background: rgba(0,0,0,.95);
-  color: white;
-  padding: 40px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  z-index: 200; 
+  z-index: 200;
 }
-.chapter-item {
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(255,255,255,.2);
-  cursor: pointer;
-}
-.chapter-item:hover { color: #ffcc00; }
 
-/* ===== Log 視窗 ===== */
 #log-window {
-  position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%;
-  height: 70%;
+  width: 80%; height: 70%;
   max-width: 800px;
-  background-color: rgba(0, 0, 0, 0.95);
-  border: 2px solid #888;
+  border: 2px solid #555;
   border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
-  z-index: 200;
 }
 
 .log-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  border-bottom: 1px solid #555;
-  background-color: rgba(255, 255, 255, 0.1);
-  flex-shrink: 0; 
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
 }
 
 #log-content {
   flex: 1; 
   overflow-y: auto; 
   padding: 20px;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: #ddd;
 }
 
-#log-content::-webkit-scrollbar { width: 8px; }
-#log-content::-webkit-scrollbar-track { background: #333; }
-#log-content::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-
-.log-entry {
-  margin-bottom: 15px;
-  border-bottom: 1px dashed #333;
-  padding-bottom: 10px;
-}
+.log-entry { margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; }
 .log-name { color: #ffcc00; font-weight: bold; margin-right: 10px; }
 
-#close-log-btn {
-  background: transparent;
-  border: 1px solid #fff;
-  color: #fff;
-  padding: 4px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-#close-log-btn:hover { background: #fff; color: #000; }
-
-[hidden] {
-  display: none !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
-}f
+/* 隱藏元素 */
+[hidden] { display: none !important; }
